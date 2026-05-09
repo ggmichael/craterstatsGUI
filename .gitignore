@@ -1,0 +1,14 @@
+__pycache__
+develop-eggs/
+build/
+eggs/
+.eggs/
+*.egg-info/
+.idea/
+.installed.cfg
+dist/
+sdist/
+demo/
+.coverage
+*.whl
+gallery/
