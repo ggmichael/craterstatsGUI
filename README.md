@@ -1,8 +1,20 @@
 
 # Craterstats-III GUI
 
-This is a Graphical User Interface wrapper for the Craterstats-III package.
+This is a graphical user interface wrapper for the [craterstats](https://github.com/ggmichael/craterstats) package. 
+It is a self-contained application needing no other software installation. 
 
-For now, it's just a test version, which should download as a pre-compiled executable 
-from [here](https://github.com/ggmichael/craterstatsGUI/releases)
+Pre-compiled executables can be downloaded [here](https://github.com/ggmichael/craterstatsGUI/releases).
 
+Your system will warn that executables from unknown sources can be a security risk and ask you to confirm that you want
+to allow craterstatsGUI to run. MacOS users may require the following step, analogous to that for the command line version: 
+
+1. From a Terminal, run the command: 
+`xattr -dr com.apple.quarantine <location of craterstatsGUI directory>`
+
+   This allows the system to run the code without giving warnings about an "unidentified developer"
+
+
+### Bug reports
+
+Please open a GitHib [issue](https://github.com/ggmichael/craterstatsGUI/issues) if you have an account; alternatively, contact the author by email.
