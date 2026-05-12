@@ -159,7 +159,11 @@ class App(ctk.CTk):
             pld['default_name'] = f"plot {len(self.plotlist) + 1}"
             self.plotlist.append(pld)
 
-        self.plotlist_cp2gui(len(self.plotlist)-1)
+        if len(self.plotlist)==0: # put defaults as first plot
+            self.plotlist_new(update=False) #self.plotlist_gui2cp(0)
+        else: # put last read into gui
+            self.plotlist_cp2gui(len(self.plotlist)-1)
+
         self.plotlist_update(len(self.plotlist)-1,update_event=False)
 
         for k in ('xrange','yrange'):
@@ -193,7 +197,8 @@ class App(ctk.CTk):
             elif k == 'presentation':
                 self.GUIval['set'][k].set(v)
             elif k in ('xrange','yrange'):
-                self.GUIval['set'][k].set(','.join(v))
+                if isinstance((v[0]),str): # defaults are not str
+                    self.GUIval['set'][k].set(','.join(v))
             else:
                 self.GUIval['set'][k].set(v)
 
@@ -282,6 +287,7 @@ class App(ctk.CTk):
             'presentation': 'pr',
             'print_dimensions': 'pd',
             'randomness_analysis': 'ra',
+            'min_diameter': 'd_min',
             'format':'f',
             'sig_figs':'sf',
         }
@@ -713,14 +719,14 @@ class App(ctk.CTk):
         y_data = ylim0 + ax_norm_y * (ylim1 - ylim0)
         return x_data,y_data
 
-    def plotlist_new(self):
+    def plotlist_new(self,update=True):
         i=0 if self.listbox.curselection() is None else self.listbox.curselection()+1
         print(f"curr:{i} {self.listbox.curselection()}")
         self.plotlist.insert(i, {})
         self.plotlist_gui2cp(i)
         self.plotlist[i]['default_name'] = f"plot {i+1}"
         self.plotlist[i]['name'] = self.plotlist[i]['default_name']
-        self.plotlist_update(i)
+        if update: self.plotlist_update(i)
         self.plotlist_previous_selection = i
 
     def plotlist_delete(self):
@@ -837,7 +843,7 @@ class App(ctk.CTk):
             gm.write_textfile(file_path,self.cmd)
             args = argparse.Namespace(randomness_analysis=False,tight=self.cps_dict['tight'])
             self.cps.out=gm.filename(file_path,'pn')
-            cli.write_output_files(args, self.cps, drawn=True)
+            cli.write_output_files(args, self.cps, drawn=True, age_area_result=self.age_area_result)
             self.workdir = gm.filename(file_path,'p')
 
     def show_error(self,msg):
@@ -910,7 +916,7 @@ class App(ctk.CTk):
             self.GUIval['set'][k].set(value=self.pr_xyranges[k][pr_new])
         self.request_update_event()
 
-    def request_update_event(self):
+    def request_update_event(self, value=None):
         if self.update_timer_id is not None: # cancel keypress timer if running
             self.after_cancel(self.update_timer_id)
 
@@ -926,7 +932,7 @@ class App(ctk.CTk):
     def do_update_event(self):
         self.prepare_commandline()
         self.textbox_command.delete("0.0", "end")
-        self.textbox_command.insert("0.0", 'craterstatsGUI ' + ' '.join(self.cmd))
+        self.textbox_command.insert("0.0", 'craterstats ' + ' '.join(self.cmd))
         self.update_idletasks()
 
         h = self.hash_uncertainty_params()

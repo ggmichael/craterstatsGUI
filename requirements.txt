@@ -1,2 +1,8 @@
-git+https://github.com/ggmichael/craterstats.git@6b45821aedf28cbb6f355fdf531f154bed7e2c2e#egg=craterstats
 customtkinter
+
+# latest craterstats
+git+https://github.com/ggmichael/craterstats.git
+
+# pinned craterstats commit
+#git+https://github.com/ggmichael/craterstats.git@d3aef6b9407486e33cdfba6b83e1b57faf2940bc
+
