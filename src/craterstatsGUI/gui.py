@@ -9,6 +9,7 @@ import multiprocessing
 from queue import Empty
 import os
 import re
+import sys
 import shlex
 import time
 
@@ -971,7 +972,7 @@ class App(ctk.CTk):
         self.update_progress(1, 1, f'\nWriting results to: {gm.filename(f, 'pn1', '_ra*')}\nProcessing...')
 
         # cps and queue must be non-class variables for multiprocessing
-        cps = argparse.Namespace(trials=self.cps.trials,out=self.cps.out,measures=self.cps.measure) # need var analogous to self.cps
+        cps = argparse.Namespace(trials=self.cps.trials,out=self.cps.out,measure=self.cps.measure) # need var analogous to self.cps
         queue = multiprocessing.Queue()
         self.process = multiprocessing.Process(target=randomness_analysis_worker, args=(args, cps, queue))
         self.process.start()
@@ -1032,7 +1033,7 @@ class App(ctk.CTk):
         self.after(100, self.update_idletasks)
 
     def hash_uncertainty_params(self):
-        d = {k: self.cps_dict[k] for k in ('xrange','yrange','chronology_system','min_diameter','global_area','n_samples')}
+        d = {k: self.cps_dict[k] for k in ('xrange','yrange','chronology_system','min_diameter','global_area','n_samples') if k in self.cps_dict}
         return hash_dict(d)
 
 
@@ -1090,7 +1091,7 @@ def hash_dict(d):
 
 
 def main():
-    ctk.set_appearance_mode("Dark") # "System"
+    ctk.set_appearance_mode("Dark")  # "System"
     ctk.set_default_color_theme("dark-blue")
     app = App()
     app.mainloop()
