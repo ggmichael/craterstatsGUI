@@ -7,6 +7,8 @@ import shutil
 datas = [
     ('src/craterstatsGUI/assets/*', 'craterstatsGUI/assets'),
     ('LICENSE.txt', '.'),
+    ('scripts/add_cs_path.bat', '.'),
+    ('scripts/create_desktop_cli_shortcut.bat', '.'),
 ]
 
 hiddenimports = [
@@ -48,5 +50,4 @@ coll = COLLECT(
 exedir = r'dist/craterstatsGUI/'
 shutil.move(exedir + r'_internal/LICENSE.txt', exedir)
 if os.name == 'nt':
-    shutil.move(exedir + r'_internal/craterstats/scripts/add_cs_path.bat', exedir + r'_internal/')
-    shutil.move(exedir + r'_internal/craterstats/scripts/create_desktop_shortcut.bat', exedir + 'create_desktop_cli_shortcut.bat')
+    shutil.move(exedir + r'_internal/create_desktop_cli_shortcut.bat', exedir)
