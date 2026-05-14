@@ -9,7 +9,6 @@ import multiprocessing
 from queue import Empty
 import os
 import re
-import sys
 import shlex
 import time
 
@@ -26,6 +25,7 @@ import craterstats.gm as gm
 import craterstats.cli as cli
 
 from craterstatsGUI import __version__
+
 class App(ctk.CTk):
 
     def __init__(self):
@@ -46,12 +46,12 @@ class App(ctk.CTk):
         self.cps_dict = copy.deepcopy(cst.DEFAULTS['set'])
         self.cp_dicts = [copy.deepcopy(cst.DEFAULTS['plot'])]
         self.set_GUI_values()
+        self.update_disabled_controls()
 
         self.toplevel_window_about = None
         self.update_idletasks()
         self.width,self.height = (0,0)
         self.min_dim = (self.winfo_reqwidth(),self.winfo_reqheight())
-        print(f"Minimum dimensions for the window: {self.min_dim}")
         self.geometry(f"{self.min_dim[0]}x{self.min_dim[1]}")
         self.minsize(*self.min_dim)
         self.bind('<Configure>', self.on_resize)
@@ -114,7 +114,8 @@ class App(ctk.CTk):
                 elif k in ('range', 'offset_age','ra_offset'):
                     GUIval[d][k] = ctk.StringVar(value='')
                 else:
-                    print(f"Unsupported key: {k}")
+                    pass
+                    #print(f"Unsupported key: {k}")
                 if k == 'sig_figs': # make additional tag
                     GUIval[d]['3 sf'] = ctk.BooleanVar(value = v == 3)
 
@@ -396,7 +397,7 @@ class App(ctk.CTk):
 
     def resize_image(self, event):
         self.image_dim = (min(event.width,event.height)-110) / self.scaling # make slightly smaller than padding margin
-        print(self.image_dim)
+        #print(self.image_dim)
         self.update_image()
 
 
@@ -683,6 +684,7 @@ class App(ctk.CTk):
 
         self.bind("<Button-1>", self.remove_entry_focus)
 
+
     def on_press(self, event):
         self.press = (event.x,event.y)
     def on_release(self, event):
@@ -722,7 +724,7 @@ class App(ctk.CTk):
 
     def plotlist_new(self,update=True):
         i=0 if self.listbox.curselection() is None else self.listbox.curselection()+1
-        print(f"curr:{i} {self.listbox.curselection()}")
+        #print(f"curr:{i} {self.listbox.curselection()}")
         self.plotlist.insert(i, {})
         self.plotlist_gui2cp(i)
         self.plotlist[i]['default_name'] = f"plot {i+1}"
@@ -769,7 +771,7 @@ class App(ctk.CTk):
         if self.plotlist_previous_selection is not None:
             self.plotlist_gui2cp(self.plotlist_previous_selection)
         self.plotlist_cp2gui(i)
-        print(self.plotlist[i])
+        #print(self.plotlist[i])
         self.plotlist_previous_selection = i
 
     def plotlist_gui2cp(self,i):
@@ -804,7 +806,7 @@ class App(ctk.CTk):
             self.workdir = gm.filename(file_path, 'p')
             os.chdir(self.workdir)
             cmd=gm.read_textfile(file_path,ignore_hash=True,ignore_blank=True)
-            print('\n'.join(cmd))
+            #print('\n'.join(cmd))
             args0=shlex.split(' '.join(cmd))
             args = cli.get_parser().parse_args(args0)
             args.input = True
@@ -863,19 +865,9 @@ class App(ctk.CTk):
                 a = shlex.split(cmd)
                 cli.main(a)
 
-
     def menu_about(self):
         if self.toplevel_window_about is None or not self.toplevel_window_about.winfo_exists():
             self.toplevel_window_about = WindowAbout(self)
-
-
-    def open_input_dialog_event(self):
-        dialog = ctk.CTkInputDialog(text="Type in a number:", title="CTkInputDialog")
-        print("CTkInputDialog:", dialog.get_input())
-
-
-    def sidebar_button_event(self):
-        print("sidebar_button click")
 
     def browse_source(self):
         file_path = tk.filedialog.askopenfilename(
@@ -952,8 +944,8 @@ class App(ctk.CTk):
 
     def update_disabled_controls(self):
         f = self.GUIval['plot']['source'].get()
-        shape_present =  gm.filename(f,'e') in ('.scc','.shp') and gm.file_exists(f)
-        ra_present = gm.file_exists(gm.filename(f,'pn1','_ra.txt'))
+        shape_present = gm.filename(f,'e') in ('.scc','.shp') and gm.file_exists(f)
+        ra_present = shape_present and gm.file_exists(gm.filename(f,'pn1','_ra.txt'))
         self.button_ra.configure(state=ctk.NORMAL if shape_present else ctk.DISABLED)
         self.radiobuttons_presentation[8].configure(state=ctk.NORMAL if shape_present else ctk.DISABLED) # map
         self.radiobuttons_presentation[9].configure(state=ctk.NORMAL if ra_present else ctk.DISABLED) # sdaa
@@ -1014,7 +1006,7 @@ class App(ctk.CTk):
         if self.width != width or self.height != height:
             self.width = width
             self.height = height
-            print(f"Final window size is: {width}x{height}")
+            #print(f"Final window size is: {width}x{height}")
             if self.resize_timer is not None:
                 self.after_cancel(self.resize_timer)
             self.resize_timer = self.after(500,self.prepare_dicts)

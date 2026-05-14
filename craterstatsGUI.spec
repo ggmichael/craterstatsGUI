@@ -51,3 +51,4 @@ exedir = r'dist/craterstatsGUI/'
 shutil.move(exedir + r'_internal/LICENSE.txt', exedir)
 if os.name == 'nt':
     shutil.move(exedir + r'_internal/create_desktop_cli_shortcut.bat', exedir)
+shutil.copytree(exedir + r'_internal/craterstats/sample', exedir + 'sample/', dirs_exist_ok=True)
