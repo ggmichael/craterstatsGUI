@@ -102,14 +102,14 @@ jobs:
         env:
           RUNNER_OS: ${{ runner.os }}
         run: |
-          mkdir craterstats
+          mkdir craterstatsGUI
           if [ "${{ runner.os }}" == "Windows" ]; then
-            7z x dist/${{ env.ZIP_NAME }} -o$PWD/craterstats
+            7z x dist/${{ env.ZIP_NAME }} -o$PWD/craterstatsGUI
           else # Use unzip for Linux/macOS
-            unzip -q dist/${{ env.ZIP_NAME }} -d craterstats
+            unzip -q dist/${{ env.ZIP_NAME }} -d craterstatsGUI
           fi
-          craterstats/craterstats/craterstats -v
-          craterstats/craterstats/craterstats -demo
+          craterstatsGUI/craterstatsGUI/craterstats -v
+          craterstatsGUI/craterstatsGUI/craterstats -demo
 
       - name: Upload release
         uses: softprops/action-gh-release@v2
