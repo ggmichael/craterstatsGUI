@@ -14,7 +14,7 @@ to allow craterstatsGUI to run. MacOS users may require the following step, anal
 
    This allows the system to run the code without giving warnings about an "unidentified developer"
 
-Launch the executable to open the GUI, or provide command-line parameters to run Craterstats in command-line mode.
+Launch the executable to open the GUI, or use console parameters for command-line mode.
 
 ### Bug reports
 
