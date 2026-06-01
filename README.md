@@ -18,4 +18,6 @@ Launch the executable to open the GUI, or use console parameters for command-lin
 
 ### Bug reports
 
+- 0.0.5 MacOS browse source files bug fixed
+
 Please open a GitHib [issue](https://github.com/ggmichael/craterstatsGUI/issues) if you have an account; alternatively, contact the author by email.
