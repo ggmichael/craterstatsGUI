@@ -872,7 +872,7 @@ class App(ctk.CTk):
     def browse_source(self):
         file_path = tk.filedialog.askopenfilename(
             title="Select a File",
-            filetypes=[("Crater count files", "*.scc;*.diam;*.shp;*.stat")],
+            filetypes=[("Crater count files",  ("*.scc", "*.diam", "*.shp", "*.stat"))],
             initialdir=self.workdir,
         )
         if file_path:
