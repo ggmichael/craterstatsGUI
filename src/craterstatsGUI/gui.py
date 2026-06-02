@@ -953,6 +953,8 @@ class App(ctk.CTk):
         self.legend_checkboxes[7].configure(state=ctk.NORMAL if self.cps_dict['presentation'] == 'sequence' else ctk.DISABLED) # age
         self.label_dmin.configure(state=ctk.NORMAL if self.cps_dict['presentation'] == 'uncertainty' else ctk.DISABLED) # d_min
 
+        plot_type = self.GUIval['plot']['type'].get()
+        for i in (4,5): self.plot_toggles_checkboxes[i].configure(state=ctk.NORMAL if plot_type=='cumulative-fit' else ctk.DISABLED) # resurf, resurf-showall
 
 
     def do_randomness_analysis(self):
