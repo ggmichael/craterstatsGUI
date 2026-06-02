@@ -1,0 +1,5 @@
+-title Differential plot with diameter-aligned spatial randomness analysis results
+-ef trask
+-p 'source=%sample%/CE-6 8-km vicinity.scc'
+-p 'type=poisson,range=[.12,.2]'
+-p 'range=[.2,.8]'

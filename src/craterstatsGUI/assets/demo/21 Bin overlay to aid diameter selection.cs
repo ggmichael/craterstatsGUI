@@ -1,0 +1,7 @@
+-title 'Bin overlay to aid diameter selection|(normally remove before publication)'
+-xrange -2 1
+-yrange -4 2
+-cs ni2001
+-p source=%sample%/Pickering.scc
+-p 'type=poisson,range=[.26,.63]'
+--bins

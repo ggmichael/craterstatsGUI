@@ -1,0 +1,4 @@
+-pr sdaa
+-title '8-km vicinity of Chang-E 6 landing site|.scc file to map conversion'
+-measure sdaa
+-p src='D:\mydocs\code\pycharm\craterstats\src\craterstats\sample/CE-6 8-km vicinity.scc'

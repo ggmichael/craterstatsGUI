@@ -1,0 +1,3 @@
+-pr map
+-title '8-km vicinity of Chang-E 6 landing site|.scc file to map conversion'
+-p src='%sample%/CE-6 8-km vicinity.scc'
