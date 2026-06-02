@@ -891,7 +891,7 @@ class App(ctk.CTk):
         values = [e[1] for e in self.cs if e[0] == v]
         self.optionmenu_cs.configure(values=values)
         self.optionmenu_cs.set(values[0])
-        self.optionmenu_epochs.configure(values=[e[1] for e in self.epochs if e[0] == v])
+        self.optionmenu_epochs.configure(values=['None']+[e[1] for e in self.epochs if e[0] == v])
         self.optionmenu_epochs.set('None')
         self.chronology_system_event(update_event)
 
