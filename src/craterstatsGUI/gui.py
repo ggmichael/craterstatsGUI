@@ -76,7 +76,7 @@ class App(ctk.CTk):
         self.equilibrium = ['None']+[e['name'] for e in self.functions['equilibrium']]
 
 
-        image_path = self.path + r"assets/cs.png"
+        image_path = self.path + r"assets/images/cs.png"
         image = Image.open(image_path)
         self.image_dim = 700
         self.photo = ctk.CTkImage(light_image=image, dark_image=image,size=(self.image_dim,self.image_dim))
@@ -182,11 +182,10 @@ class App(ctk.CTk):
                 self.body_val.set(body)
                 self.body_event(body,update_event=False)
                 self.cs_val.set(fn)
-            elif k in ('font','out','cf','pf','ef','trials','measure'):
+            elif k in ('font','out','cf','pf','ef','ep','trials','measure'):
                 pass
             elif k in ('epochs','equilibrium'):
-                if v:
-                    self.GUIval['set'][k].set(v)
+                self.GUIval['set'][k].set(v if v is not None else 'None')
             elif k in ('invert','tight','mu','text_halo'):
                 self.GUIval['set'][k].set(bool(v))
             elif k=='sig_figs':
@@ -429,7 +428,7 @@ class App(ctk.CTk):
 
         # configure window
         self.title("Craterstats-III")
-        self.iconbitmap(self.path + r'assets/cs.ico')
+        self.iconbitmap(self.path + r'assets/images/cs.ico')
         ctk.set_widget_scaling(self.scaling)  # can look nicer, but also scales plot image: would need to scale click coords
 
         # Grid configuration for resizing
@@ -464,8 +463,14 @@ class App(ctk.CTk):
         self.radiobuttons_presentation = []
         for i, e in enumerate(cst.PRESENTATIONS):
             rb = ctk.CTkRadioButton(master=self.presentation_frame, variable=self.GUIval['set']['presentation'], value=e, text=e,  command=self.presentation_event)
-            rb.grid(row=i%6+1, column=i//6, pady=3, padx=10, sticky="n")
             self.radiobuttons_presentation.append(rb)
+            if i<=8:
+                rb.grid(row=i % 6 + 1, column=i // 6, pady=3, padx=10, sticky="n")
+            else:
+                rb.grid(row=i % 6 + 2, column=i // 6, pady=3, padx=10, sticky="n")
+        self.label_randomness = ctk.CTkLabel(master=self.presentation_frame, text="Randomness")
+        self.label_randomness.grid(row=4, column=1, columnspan=1, padx=10, pady=[10,0], sticky="")
+
 
 
         # functions frame
@@ -795,7 +800,6 @@ class App(ctk.CTk):
             case 'Save...': self.menu_save()
             case 'Exit': self.quit()
 
-
     def menu_open(self):
         self.prepare_commandline()
         file_path = tk.filedialog.askopenfilename(
@@ -807,7 +811,6 @@ class App(ctk.CTk):
             self.workdir = gm.filename(file_path, 'p')
             os.chdir(self.workdir)
             cmd=gm.read_textfile(file_path,ignore_hash=True,ignore_blank=True)
-            #print('\n'.join(cmd))
             args0=shlex.split(' '.join(cmd))
             args = cli.get_parser().parse_args(args0)
             args.input = True
@@ -856,15 +859,12 @@ class App(ctk.CTk):
         self.textbox_command.insert("1.0", "Error: ", "red")
         self.textbox_command.insert("end", msg)
 
-
-    def menu_export(self, c):
-        self.button_menu_export.set("Export")
-        match c:
-            case 'PNG':
-                self.prepare_commandline()
-                cmd = ' '.join(self.cmd+['-f','png','-o','D:/mydocs/tmp/default'])
-                a = shlex.split(cmd)
-                cli.main(a)
+    def clear_textbox(self):
+        self.textbox_command.delete("1.0", "end")
+    def print(self,text,update=True):
+        self.textbox_command.insert("end", text)
+        self.textbox_command.see("end")
+        if update: self.update_idletasks()
 
     def menu_about(self):
         if self.toplevel_window_about is None or not self.toplevel_window_about.winfo_exists():
@@ -1037,7 +1037,7 @@ class WindowAbout(ctk.CTkToplevel):
         super().__init__(*args, **kwargs)
 
         self.title("About")
-        self.after(201, lambda :self.iconbitmap(self.master.path + 'assets/cs.ico'))
+        self.after(201, lambda :self.iconbitmap(self.master.path + 'assets/images/cs.ico'))
 
         self.geometry("700x720")
         self.grid_columnconfigure(0, weight=1)
