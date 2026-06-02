@@ -11,6 +11,7 @@ import os
 import re
 import shlex
 import time
+import webbrowser
 
 import tkinter as tk
 import customtkinter as ctk
@@ -1046,11 +1047,27 @@ class WindowAbout(ctk.CTkToplevel):
 
         self.textbox.tag_config("bold", foreground="#ffffff")
         self.textbox.tag_config("normal", foreground="#aaaaaa")
+
+        link_re = re.compile(r'(doi:\s*10\.\S+|url:\S+)', re.I)
+
         for i, line in enumerate(cst.ABOUT):
             if line != '' and line[0] =='*':
                 self.textbox.insert(tk.END, line[1:], "bold")
             else:
-                self.textbox.insert(tk.END, line, "normal")
+                m = link_re.search(line)
+                if m:
+                    self.textbox.insert("end", line[:m.start()], "normal")
+                    link = m.group(0)
+                    url = (f"https://doi.org/{m.group(1)}" if link.lower().startswith("doi:") else link[4:])
+                    tag = f"link{i}"
+                    self.textbox.insert("end", link, tag)
+                    self.textbox.tag_config(tag, foreground="#4ea3ff", underline=True)
+                    self.textbox.tag_bind(tag, "<Button-1>", lambda e, u=url: webbrowser.open(u))
+                    self.textbox.tag_bind(tag, "<Enter>", lambda e: self.textbox.configure(cursor="hand2"))
+                    self.textbox.tag_bind(tag, "<Leave>", lambda e: self.textbox.configure(cursor=""))
+                    self.textbox.insert("end", line[m.end():], "normal")
+                else:
+                    self.textbox.insert("end", line, "normal")
             if i==3:
                 self.textbox.insert(tk.END, f" (CraterstatsGUI wrapper: {__version__})", "normal")
             if i<len(cst.ABOUT)-2:
