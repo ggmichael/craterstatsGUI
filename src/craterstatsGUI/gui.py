@@ -9,6 +9,7 @@ import multiprocessing
 from queue import Empty
 import os
 import re
+import sys
 import shlex
 import time
 import webbrowser
@@ -58,7 +59,13 @@ class App(ctk.CTk):
         self.bind('<Configure>', self.on_resize)
 
         self.standard_colour = self.button_update.cget('fg_color')
-        self.workdir = gm.get_documents_path()
+
+        if getattr(sys, 'frozen', False): # Running in PyInstaller bundle
+            exe_dir = os.path.dirname(sys.executable)
+        else: # Running in normal Python
+            exe_dir = os.path.dirname(os.path.abspath(__file__))+"/assets/"
+        # self.workdir = gm.get_documents_path()
+        self.workdir = exe_dir # better for access to demos
         self.cps = None
 
         self.queue = multiprocessing.Queue()
@@ -81,7 +88,7 @@ class App(ctk.CTk):
         self.image_dim = 700
         self.photo = ctk.CTkImage(light_image=image, dark_image=image,size=(self.image_dim,self.image_dim))
 
-        self.legend_options = ['functions', 'name', 'area', 'perimeter', 'number', 'range', 'N(1)', 'age']
+        self.legend_options = ['functions', 'name', 'area', 'perimeter', 'number', 'range', 'N(d_ref)', 'age']
         self.legend_codes = 'fnapcrNA'
         self.formats = ['png', 'svg', 'csv']
 
@@ -832,18 +839,20 @@ class App(ctk.CTk):
             try:
                 self.cp_dicts = cli.construct_plot_dicts(args, dflt['plot'], self.cps_dict)
             except:
-                self.show_error(f"{gm.filename(file_path,'ne')} references invalid file path.\nPlease fix with text editor and retry.")
+                self.print_error(f"{gm.filename(file_path, 'ne')} references invalid file path.\nPlease fix with text editor and retry.")
                 return
             for e in self.cp_dicts:
                 e['source'] = e['cratercount'].filename # always use full path in gui (relative may be lost on save)
             self.set_GUI_values()
             self.request_update_event()
 
-
     def menu_close(self):
         self.cps_dict = copy.deepcopy(cst.DEFAULTS['set'])
         self.cp_dicts = [copy.deepcopy(cst.DEFAULTS['plot'])]
         self.set_GUI_values()
+        self.do_update_event()
+        self.image.configure(image=self.photo)
+        self.image.update()
 
     def menu_save(self):
         self.prepare_commandline()
@@ -864,18 +873,19 @@ class App(ctk.CTk):
             cli.write_output_files(args, self.cps, drawn=True, age_area_result=self.age_area_result)
             self.workdir = gm.filename(file_path,'p')
 
-    def show_error(self,msg):
-        self.textbox_command.delete("1.0", "end")
-        self.textbox_command.tag_config("red", foreground="#ff8888")
-        self.textbox_command.insert("1.0", "Error: ", "red")
-        self.textbox_command.insert("end", msg)
-
     def clear_textbox(self):
         self.textbox_command.delete("1.0", "end")
     def print(self,text,update=True):
         self.textbox_command.insert("end", text)
         self.textbox_command.see("end")
         if update: self.update_idletasks()
+
+    def print_error(self, msg):
+        self.clear_textbox()
+        self.textbox_command.tag_config("red", foreground="#ff8888")
+        self.textbox_command.insert("1.0", "Error: ", "red")
+        self.print(msg)
+        #self.textbox_command.insert("end", msg)
 
     def menu_about(self):
         if self.toplevel_window_about is None or not self.toplevel_window_about.winfo_exists():
@@ -888,6 +898,8 @@ class App(ctk.CTk):
             initialdir=self.workdir,
         )
         if file_path:
+            self.workdir = gm.filename(file_path, 'p')
+            os.chdir(self.workdir)
             self.entry_source.configure(state = "normal")
             self.entry_source.delete(0, ctk.END)
             self.entry_source.insert(0, file_path)
@@ -979,6 +991,14 @@ class App(ctk.CTk):
         self.textbox_command.delete("0.0", "end")
         self.textbox_command.insert("0.0", 'craterstatsGUI -ra ' + f)
         self.update_progress(1, 1, f'\nWriting results to: {gm.filename(f, 'pn1', '_ra*')}\nProcessing...')
+
+        # check opening scc before parallel run
+        try:
+            scc = cst.Spatialcount(f)
+        except:
+            self.print_error(f'Problem opening: {f}')
+            self.print('\nTemporary note: likely cause - either file contains keyword "a_axis radius" instead of "a_axis_radius", or duplicate area polygon vertices. Fix manually.')
+            return
 
         # cps and queue must be non-class variables for multiprocessing
         cps = argparse.Namespace(trials=self.cps.trials,out=self.cps.out,measure=self.cps.measure) # need var analogous to self.cps
