@@ -99,7 +99,7 @@ class App(ctk.CTk):
         for d in cst.DEFAULTS:
             GUIval[d] = {}
             for k, v in cst.DEFAULTS[d].items():
-                if k in ('chronology_system', 'epochs', 'equilibrium', 'presentation', 'print_dimensions', 'pt_size', 'ref_diam', 'sig_figs',
+                if k in ('chronology_system', 'epochs', 'equilibrium', 'presentation', 'print_dimensions', 'pt_size', 'ref_diameter', 'sig_figs',
                          'style', 'format', 'min_diameter', 'global_area', 'n_samples', 'ra_offset',
                          'type', 'binning'):
                     GUIval[d][k] = ctk.StringVar(value = v if v else 'None')
@@ -182,6 +182,7 @@ class App(ctk.CTk):
                 self.body_val.set(body)
                 self.body_event(body,update_event=False)
                 self.cs_val.set(fn)
+                self.chronology_system_event(update_event=False)
             elif k in ('font','out','cf','pf','ef','ep','trials','measure'):
                 pass
             elif k in ('epochs','equilibrium'):
@@ -236,7 +237,7 @@ class App(ctk.CTk):
                     set_dict[k] = cst.DEFAULT_XRANGE[pr] if k=='xrange' else cst.DEFAULT_YRANGE[pr]
             elif k in ['n_samples']:
                 set_dict[k] = int(v)
-            elif k in ['min_diameter']:
+            elif k in ['min_diameter','ref_diameter']:
                 set_dict[k] = float(v)
             elif k in ['ra_offset']:
                 set_dict[k] = float(v) if v != '' else 0.
@@ -298,7 +299,7 @@ class App(ctk.CTk):
         pr = self.cps_dict['presentation']
         for k,v in self.cps_dict.items():
             if k in ('xrange','yrange'):
-                default = v == (cst.DEFAULT_XRANGE[pr] if k == 'xrange' else cst.DEFAULT_YRANGE[pr])
+                default = tuple(v) == (cst.DEFAULT_XRANGE[pr] if k == 'xrange' else cst.DEFAULT_YRANGE[pr])
             elif k in ('cf','pf','ef','ep','global_area','text_halo'): # here, cf,pf,ef,ep are objects
                 default = True
             elif k == 'randomness_analysis':
@@ -314,7 +315,9 @@ class App(ctk.CTk):
                     v = re.sub(r'[^a-zA-Z0-9_]','', v)
                 elif k in ('title'):
                     v = shlex.quote(v)
-                elif k in ('f', 'xrange', 'yrange'):
+                elif k in ('xrange', 'yrange'):
+                    v = ' '.join(v) if isinstance(v[0],str) else f"{v[0]:.03g} {v[1]:.03g}"
+                elif k == 'f':
                     v = ' '.join(v)
                 elif k in ('measure'):
                     v = ','.join(v)
@@ -378,7 +381,7 @@ class App(ctk.CTk):
             cpl = [cst.Craterplot(d) for d in self.cp_dicts]
             self.cps.craterplot = cpl
 
-            if cpl and self.cps.presentation not in ('sequence', 'uncertainty'):
+            if cpl and self.cps.presentation not in ('sequence', 'uncertainty', 'Hartmann','chronology','rate'):
                 self.cps.autoscale(self.cps_dict['xrange'] if self.GUIval['set']['xrange'].get() != '' else None,
                               self.cps_dict['yrange'] if self.GUIval['set']['yrange'].get() != '' else None)
 
@@ -566,6 +569,14 @@ class App(ctk.CTk):
         self.label_dmin = ctk.CTkLabel(self.dmin_frame, text="d_min")
         self.label_dmin.grid(row=0, column=1, columnspan=1, padx=(5,0), pady=(0,0), sticky="e")
 
+        # dref
+        self.dref_frame = ctk.CTkFrame(self.global_frame,fg_color="transparent")
+        self.dref_frame.grid(row=4, column=1, columnspan=1, padx=0, pady=0, sticky="nsew")
+        self.entry_dref = ctk.CTkEntry(self.dref_frame, width=50, textvariable=self.GUIval['set']['ref_diameter'])
+        self.entry_dref.grid(row=0, column=0, pady=3, padx=(5,0), sticky="nw")
+        self.entry_dref.bind("<KeyRelease>", self.on_key_release)
+        self.label_dref = ctk.CTkLabel(self.dref_frame, text="d_ref")
+        self.label_dref.grid(row=0, column=1, columnspan=1, padx=(5,0), pady=(0,0), sticky="e")
 
         # save options frame
         self.label_save = ctk.CTkLabel(master=self.global_frame, text="Save")
@@ -920,15 +931,18 @@ class App(ctk.CTk):
         if need_update_button:
             self.button_update.configure(state=ctk.NORMAL)
             self.button_update.configure(fg_color='red', hover_color='#8B0000')
+            self.show_commandline(prepare=False)
         else:
             self.do_update_event()
 
-    def do_update_event(self):
-        self.prepare_commandline()
+    def show_commandline(self,prepare=True):
+        if prepare: self.prepare_commandline()
         self.textbox_command.delete("0.0", "end")
         self.textbox_command.insert("0.0", 'craterstats ' + ' '.join(self.cmd))
         self.update_idletasks()
 
+    def do_update_event(self):
+        self.show_commandline()
         h = self.hash_uncertainty_params()
         if self.cps_dict['presentation'] == 'uncertainty' and self.uncertainty_ui_hash != h:
             self.uncertainty_ui_hash = h

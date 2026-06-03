@@ -1,7 +1,7 @@
 #  Copyright (c) 2026, Greg Michael
 #  Licensed under BSD 3-Clause License. See LICENSE.txt for details.
 
-print(f"\n\n    Loading Craterstats-III GUI...", flush=True)
+print("\n  Starting Craterstats-III GUI...", flush=True)
 
 import sys
 import platform
