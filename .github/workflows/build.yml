@@ -70,7 +70,7 @@ jobs:
           if [ "$EVENT_NAME" == "push" ]; then
             # Extract version from the tag (e.g., 'v1.0.0' -> '1.0.0')
             VERSION=$(echo ${{ github.ref }} | sed 's/refs\/tags\/v//')
-            MESSAGE="Early release build: this version should be stable for general use.<br>MacOS versions are not yet tested. Feedback welcome."
+            MESSAGE="Early release build: this version should be stable for general use.<br>MacOS versions are reported to run but not fully tested. Feedback welcome."
           else
             # workflow_dispatch      
             BASE_VERSION=$(sed -n 's/^__version__ = "\([^"]*\)"/\1/p' < src/craterstatsGUI/__init__.py)            
