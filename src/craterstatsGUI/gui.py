@@ -160,6 +160,8 @@ class App(ctk.CTk):
                     pld[k]=self.psyms[v]
                 elif k == 'colour':
                     pld[k]=self.colours[v]
+                elif k == 'type':
+                     pld[k] = cst.OPLOT_TYPES[cst.OPLOT_TYPES_SHORT.index(v)]
                 elif k in ('cratercount'):
                     pass
                 elif k in ('offset_age','range'):
