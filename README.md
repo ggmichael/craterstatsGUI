@@ -15,6 +15,10 @@ to allow craterstatsGUI to run. MacOS users may also require the following step:
 
 Double-click the executable to launch the GUI, or call with parameters from console for command-line mode.
 
+The plot files used to generate [Gallery](https://github.com/ggmichael/craterstats/blob/main/docs/gallery.md) images 
+can be found in the `demo/` folder of the installation.
+
+
 ### Bug reports
 
 Please open a GitHib [issue](https://github.com/ggmichael/craterstatsGUI/issues) if you have an account; alternatively, contact the author by email.
