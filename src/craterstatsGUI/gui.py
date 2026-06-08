@@ -427,14 +427,13 @@ class App(ctk.CTk):
             img_pil = Image.fromarray(rgba_array, 'RGBA')
             ctk_img = ctk.CTkImage(light_image=img_pil, dark_image=img_pil, size=img_pil.size)
 
+            self.current_image_size = img_pil.size
             self.image.configure(image=ctk_img,width=img_pil.size[0],height=img_pil.size[1])
             self.image.update()
 
             # Force the window to update its size
             self.update_idletasks()
             self.update()
-
-
 
     def layout_GUI(self):
 
@@ -526,15 +525,15 @@ class App(ctk.CTk):
         self.range_frame = ctk.CTkFrame(self.functions_frame)
         self.range_frame.grid(row=6, column=1, columnspan=1, padx=(0, 0), pady=(0, 0), sticky="nsew")
 
-        self.label_xrange = ctk.CTkLabel(self.functions_frame, text="x-range")
+        self.label_xrange = ctk.CTkLabel(self.functions_frame, text="log x-range")
         self.label_xrange.grid(row=6, column=0, columnspan=1, padx=(10,0), pady=(5,5), sticky="e")
-        self.entry_xrange = ctk.CTkEntry(self.range_frame, width=100, textvariable=self.GUIval['set']['xrange'])
+        self.entry_xrange = ctk.CTkEntry(self.range_frame, width=80, textvariable=self.GUIval['set']['xrange'])
         self.entry_xrange.grid(row=0, column=0, padx=10, pady=(5,5),sticky="ew")
         self.entry_xrange.bind("<KeyRelease>", self.on_key_release)
 
-        self.label_yrange = ctk.CTkLabel(self.range_frame, text="y-range")
+        self.label_yrange = ctk.CTkLabel(self.range_frame, text="log y-range")
         self.label_yrange.grid(row=0, column=1, columnspan=1, padx=(10,0), pady=(5,5), sticky="e")
-        self.entry_yrange = ctk.CTkEntry(self.range_frame, width=100, textvariable=self.GUIval['set']['yrange'])
+        self.entry_yrange = ctk.CTkEntry(self.range_frame, width=80, textvariable=self.GUIval['set']['yrange'])
         self.entry_yrange.grid(row=0, column=2, padx=10, pady=(5,5),sticky="w")
         self.entry_yrange.bind("<KeyRelease>", self.on_key_release)
 
@@ -735,17 +734,20 @@ class App(ctk.CTk):
             self.request_update_event()
 
     def pixel_to_data_coords(self,x,y):
-        #self.image.update_idletasks()
-        norm_x = x / self.image_dim / self.scaling
-        norm_y = 1 - (y / self.image_dim / self.scaling)
-        bbox = self.cps.ax.get_position()  # axes position in figure coords
-        ax_norm_x = (norm_x - bbox.x0) / (bbox.x1 - bbox.x0)
-        ax_norm_y = (norm_y - bbox.y0) / (bbox.y1 - bbox.y0)
-
-        # convert axes-normalized to data coordinates
-        ylim0, ylim1 = (np.log10(self.cps.ax.get_ylim()[0]), np.log10(self.cps.ax.get_ylim()[1]))
-        x_data = self.cps.ax.get_xlim()[0] + ax_norm_x * (self.cps.ax.get_xlim()[1] - self.cps.ax.get_xlim()[0])
-        y_data = ylim0 + ax_norm_y * (ylim1 - ylim0)
+        norm_x = x / self.current_image_size[0] / self.scaling
+        norm_y = 1 - (y / self.current_image_size[1] / self.scaling)
+        # bbox = self.cps.ax.get_position()  # axes position in figure coords
+        # ax_norm_x = (norm_x - bbox.x0) / (bbox.x1 - bbox.x0)
+        # ax_norm_y = (norm_y - bbox.y0) / (bbox.y1 - bbox.y0)
+        # print(f"x {x} image_dim {self.image_dim}  scaling {self.scaling} norm_x {norm_x} bbox {bbox} xlim {self.cps.ax.get_xlim()}")
+        #
+        # # convert axes-normalized to data coordinates
+        # ylim0, ylim1 = (np.log10(self.cps.ax.get_ylim()[0]), np.log10(self.cps.ax.get_ylim()[1]))
+        # x_data = self.cps.ax.get_xlim()[0] + ax_norm_x * (self.cps.ax.get_xlim()[1] - self.cps.ax.get_xlim()[0])
+        # y_data = ylim0 + ax_norm_y * (ylim1 - ylim0)
+        # print(x_data,y_data)
+        # print(norm_x,norm_y,self.cps.position_to_data_coords(norm_x,norm_y))
+        x_data, y_data = self.cps.position_to_data_coords(norm_x,norm_y)
         return x_data,y_data
 
     def plotlist_new(self,update=True):
