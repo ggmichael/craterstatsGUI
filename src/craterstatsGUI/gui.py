@@ -8,6 +8,7 @@ import json
 import multiprocessing
 from queue import Empty
 import os
+from pathlib import Path
 import re
 import sys
 import shlex
@@ -66,6 +67,7 @@ class App(ctk.CTk):
             exe_dir = os.path.dirname(os.path.abspath(__file__))+"/assets/"
         # self.workdir = gm.get_documents_path()
         self.workdir = exe_dir # better for access to demos
+        self.browse_dir = None # set only when differs from workdir
         self.cps = None
 
         self.queue = multiprocessing.Queue()
@@ -288,7 +290,7 @@ class App(ctk.CTk):
                 self.cps_dict[k] = set_dict[k]
         self.cp_dicts = cp_dicts
 
-    def prepare_commandline(self):
+    def prepare_commandline(self,prepare_dicts=True):
         """
         translate between dictionaries in GUI convenient format (GUIval/plotlist) and comannd line format (.cs) (via cli prepared format (cps_dict,cp_dicts))
         """
@@ -303,16 +305,18 @@ class App(ctk.CTk):
             'format':'f',
             'sig_figs':'sf',
         }
-        self.prepare_dicts()
+        if prepare_dicts:
+            self.prepare_dicts()
         cs=[]
         pr = self.cps_dict['presentation']
         for k,v in self.cps_dict.items():
             if k in ('xrange','yrange'):
                 default = tuple(v) == (cst.DEFAULT_XRANGE[pr] if k == 'xrange' else cst.DEFAULT_YRANGE[pr])
-            elif k in ('cf','pf','ef','ep','global_area','text_halo'): # here, cf,pf,ef,ep are objects
+            elif k in ('cf','pf','ef','ep','global_area','text_halo','out'): # here, cf,pf,ef,ep are objects
                 default = True
             elif k == 'randomness_analysis':
                 default = False
+                v = relative_path_if_possible(v, self.workdir)
             elif k == 'presentation':
                 default = cst.DEFAULTS['set'][k] == v or v in ('sdaa','m2cnd')
             else:
@@ -323,7 +327,7 @@ class App(ctk.CTk):
                 if k in ('cs','ep','ef'): # here, ef,ep are labels
                     v = re.sub(r'[^a-zA-Z0-9_]','', v)
                 elif k in ('title'):
-                    v = shlex.quote(v)
+                    v = f'"{v}"' if shlex.quote(v)!=v else v
                 elif k in ('xrange', 'yrange'):
                     v = ' '.join(v) if isinstance(v[0],str) else f"{v[0]:.03g} {v[1]:.03g}"
                 elif k == 'f':
@@ -348,7 +352,9 @@ class App(ctk.CTk):
                         default = v == cst.DEFAULTS['plot'][k]
                     if not default:
                         if k in ('source','name'):
-                            v = f'"{v}"'
+                            if k=='source':
+                                v = relative_path_if_possible(v, self.workdir)
+                            v = f'"{v}"' if shlex.quote(v)!=v else v
                         elif k in ('offset_age','range'):
                             v = f"{v}".replace("'", "").replace(' ', '')
                         elif k == 'colour':
@@ -823,7 +829,7 @@ class App(ctk.CTk):
             case 'Exit': self.quit()
 
     def menu_open(self):
-        self.prepare_commandline()
+        self.prepare_dicts()
         file_path = tk.filedialog.askopenfilename(
             title="Select a File",
             filetypes=[("Craterstats files", "*.cs")],
@@ -832,6 +838,7 @@ class App(ctk.CTk):
         if file_path:
             self.workdir = gm.filename(file_path, 'p')
             os.chdir(self.workdir)
+            self.prepare_commandline(prepare_dicts=False)
             cmd=gm.read_textfile(file_path,ignore_hash=True,ignore_blank=True)
             args0=shlex.split(' '.join(cmd))
             args = cli.get_parser().parse_args(args0)
@@ -859,7 +866,7 @@ class App(ctk.CTk):
         self.image.update()
 
     def menu_save(self):
-        self.prepare_commandline()
+        self.prepare_dicts()
         cli.set_default_filename(None,self.cps_dict,self.cp_dicts)
         default_filename = self.cps_dict['out']
 
@@ -871,11 +878,14 @@ class App(ctk.CTk):
             initialfile=default_filename,
         )
         if file_path:
+            self.workdir = gm.filename(file_path, 'p')
+            os.chdir(self.workdir)
+            self.prepare_commandline(prepare_dicts=False)
             gm.write_textfile(file_path,self.cmd)
             args = argparse.Namespace(randomness_analysis=False,tight=self.cps_dict['tight'])
             self.cps.out=gm.filename(file_path,'pn')
             cli.write_output_files(args, self.cps, drawn=True, age_area_result=self.age_area_result)
-            self.workdir = gm.filename(file_path,'p')
+
 
     def clear_textbox(self):
         self.textbox_command.delete("1.0", "end")
@@ -899,11 +909,12 @@ class App(ctk.CTk):
         file_path = tk.filedialog.askopenfilename(
             title="Select a File",
             filetypes=[("Crater count files",  ("*.scc", "*.diam", "*.shp", "*.stat"))],
-            initialdir=self.workdir,
+            initialdir=self.browse_dir if self.browse_dir else self.workdir,
         )
         if file_path:
-            self.workdir = gm.filename(file_path, 'p')
-            os.chdir(self.workdir)
+            self.browse_dir = gm.filename(file_path, 'p')
+            if not Path(self.browse_dir).resolve().is_relative_to(Path(self.workdir).resolve()):
+                self.workdir = self.browse_dir # update workdir if browse_dir is not a child of it
             self.entry_source.configure(state = "normal")
             self.entry_source.delete(0, ctk.END)
             self.entry_source.insert(0, file_path)
@@ -1137,6 +1148,10 @@ def hash_dict(d):
     dict_json = json.dumps(d, sort_keys=True)
     dict_hash = hashlib.sha256(dict_json.encode()).hexdigest()
     return dict_hash
+def relative_path_if_possible(path, workdir):
+    p = Path(path).resolve()
+    w = Path(workdir).resolve()
+    return str(p.relative_to(w) if p.is_relative_to(w) else p)
 
 
 def main():
