@@ -69,6 +69,7 @@ class App(ctk.CTk):
         self.workdir = exe_dir # better for access to demos
         self.browse_dir = None # set only when differs from workdir
         self.cps = None
+        self.cs_filename = None
 
         self.queue = multiprocessing.Queue()
         self.process = None
@@ -838,6 +839,7 @@ class App(ctk.CTk):
         if file_path:
             self.workdir = gm.filename(file_path, 'p')
             os.chdir(self.workdir)
+            self.cs_filename = gm.filename(file_path, 'n')
             self.prepare_commandline(prepare_dicts=False)
             cmd=gm.read_textfile(file_path,ignore_hash=True,ignore_blank=True)
             args0=shlex.split(' '.join(cmd))
@@ -860,6 +862,7 @@ class App(ctk.CTk):
     def menu_close(self):
         self.cps_dict = copy.deepcopy(cst.DEFAULTS['set'])
         self.cp_dicts = [copy.deepcopy(cst.DEFAULTS['plot'])]
+        self.cs_filename = None
         self.set_GUI_values()
         self.do_update_event()
         self.image.configure(image=self.photo)
@@ -867,8 +870,11 @@ class App(ctk.CTk):
 
     def menu_save(self):
         self.prepare_dicts()
-        cli.set_default_filename(None,self.cps_dict,self.cp_dicts)
-        default_filename = self.cps_dict['out']
+        if not self.cs_filename:
+            cli.set_default_filename(None,self.cps_dict,self.cp_dicts)
+            default_filename = self.cps_dict['out']
+        else:
+            default_filename = self.cs_filename
 
         file_path = tk.filedialog.asksaveasfilename(
             title="Save As",
@@ -880,6 +886,7 @@ class App(ctk.CTk):
         if file_path:
             self.workdir = gm.filename(file_path, 'p')
             os.chdir(self.workdir)
+            self.cs_filename = gm.filename(file_path, 'n')
             self.prepare_commandline(prepare_dicts=False)
             gm.write_textfile(file_path,self.cmd)
             args = argparse.Namespace(randomness_analysis=False,tight=self.cps_dict['tight'])
