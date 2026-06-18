@@ -838,14 +838,13 @@ class App(ctk.CTk):
         )
         if file_path:
             self.workdir = gm.filename(file_path, 'p')
-            os.chdir(self.workdir)
+            os.chdir(self.workdir) # is this needed now?
             self.cs_filename = gm.filename(file_path, 'n')
             self.prepare_commandline(prepare_dicts=False)
             cmd=gm.read_textfile(file_path,ignore_hash=True,ignore_blank=True)
             args0=shlex.split(' '.join(cmd))
             args = cli.get_parser().parse_args(args0)
-            args.input = True
-            args.input_filename = file_path
+            args.input,args.input_filename = (True, file_path) # so that filename expansion works
 
             dflt = copy.deepcopy(cst.DEFAULTS)
             self.cps_dict = cli.construct_cps_dict(args, dflt['set'], self.functions)
@@ -854,8 +853,6 @@ class App(ctk.CTk):
             except:
                 self.print_error(f"{gm.filename(file_path, 'ne')} references invalid file path.\nPlease fix with text editor and retry.")
                 return
-            for e in self.cp_dicts:
-                e['source'] = e['cratercount'].filename # always use full path in gui (relative may be lost on save)
             self.set_GUI_values()
             self.request_update_event()
 
