@@ -162,7 +162,7 @@ class App(ctk.CTk):
                 if k == 'psym':
                     pld[k]=self.psyms[v]
                 elif k == 'colour':
-                    pld[k]=self.colours[v]
+                    pld[k]=self.colours[v] if isinstance(v,int) else v
                 elif k == 'type':
                      pld[k] = cst.OPLOT_TYPES[cst.OPLOT_TYPES_SHORT.index(v)]
                 elif k in ('cratercount'):
@@ -266,7 +266,7 @@ class App(ctk.CTk):
             cp = {}
             for k,v in p.items():
                 if k == 'colour':
-                    cp[k] = self.colours.index(v)
+                    cp[k] = self.colours.index(v) if v in self.colours else v
                 elif k == 'psym':
                     cp[k] = self.psyms.index(v)
                 elif k == 'type':
@@ -359,7 +359,7 @@ class App(ctk.CTk):
                         elif k in ('offset_age','range'):
                             v = f"{v}".replace("'", "").replace(' ', '')
                         elif k == 'colour':
-                            v = cst.PALETTE[v][2].lower()
+                            v = cst.PALETTE[v][2].lower() if isinstance(v,int) else v
                         elif k == 'psym':
                             v = cst.MARKERS[v][0]
                         elif isinstance(v, bool):
@@ -654,6 +654,7 @@ class App(ctk.CTk):
         self.label_colour = ctk.CTkLabel(self.plot_frame, text="colour")
         self.label_colour.grid(row=3, column=3, columnspan=1, padx=(10,0), pady=(5,5), sticky="e")
         self.optionmenu_colour = ctk.CTkOptionMenu(self.plot_frame, dynamic_resizing=False, values=self.colours, variable=self.GUIval['plot']["colour"], command=self.request_update_event)
+        #self.optionmenu_colour = ctk.CTkComboBox(self.plot_frame, values=self.colours, variable=self.GUIval['plot']["colour"],command=self.request_update_event) # works, but over-complicated
         self.optionmenu_colour.grid(row=3, column=4, padx=10, pady=(5,5),sticky="ew")
 
         self.label_offset = ctk.CTkLabel(self.plot_frame, text="offset")
