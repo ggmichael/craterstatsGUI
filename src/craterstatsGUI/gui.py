@@ -1009,7 +1009,7 @@ class App(ctk.CTk):
         args = argparse.Namespace(randomness_analysis=f,trials=None,measure=None,only=None,tight=self.cps.tight)
         self.cps.out = f
         self.textbox_command.delete("0.0", "end")
-        self.textbox_command.insert("0.0", 'craterstatsGUI -ra ' + f)
+        self.textbox_command.insert("0.0", 'craterstats -ra ' + f)
         self.update_progress(1, 1, f'\nWriting results to: {gm.filename(f, 'pn1', '_ra*')}\nProcessing...')
 
         # check opening scc before parallel run
