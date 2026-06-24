@@ -1,9 +1,11 @@
 
 # Craterstats-III GUI
 
+![Screenshot](docs/images/screenshot.png)
+
 This is a graphical user interface wrapper for the [craterstats](https://github.com/ggmichael/craterstats) package. 
 It is a self-contained application needing no other software installation. 
-Pre-compiled executables can be downloaded [here](https://github.com/ggmichael/craterstatsGUI/releases).
+Executables can be downloaded [here](https://github.com/ggmichael/craterstatsGUI/releases).
 
 Your system will warn that executables from unknown sources can be a security risk and ask you to confirm that you want
 to allow craterstatsGUI to run. MacOS users may also require the following step: 
