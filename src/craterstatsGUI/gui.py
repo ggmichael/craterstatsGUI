@@ -1,6 +1,11 @@
 #  Copyright (c) 2026, Greg Michael
 #  Licensed under BSD 3-Clause License. See LICENSE.txt for details.
 
+import sys
+log = open("craterstats.log", "w", buffering=1)
+sys.stdout = log
+sys.stderr = log
+
 import argparse
 import copy
 import hashlib
@@ -1010,18 +1015,17 @@ class App(ctk.CTk):
         self.cps.out = f
         self.textbox_command.delete("0.0", "end")
         self.textbox_command.insert("0.0", 'craterstats -ra ' + f)
-        self.update_progress(1, 1, f'\nWriting results to: {gm.filename(f, 'pn1', '_ra*')}\nProcessing...')
+        self.update_progress(1, 1, f'\nWriting results to: {gm.filename(f, 'pn1', '_ra.txt')}\nProcessing...')
 
         # check opening scc before parallel run
         try:
             scc = cst.Spatialcount(f)
         except:
             self.print_error(f'Problem opening: {f}')
-            self.print('\nTemporary note: likely cause - either file contains keyword "a_axis radius" instead of "a_axis_radius", or duplicate area polygon vertices. Fix manually.')
             return
 
         # cps and queue must be non-class variables for multiprocessing
-        cps = argparse.Namespace(trials=self.cps.trials,out=self.cps.out,measure=self.cps.measure) # need var analogous to self.cps
+        cps = argparse.Namespace(trials=self.cps.trials,out=self.cps.out,measure={'m2cnd','sdaa'}) # need var analogous to self.cps
         queue = multiprocessing.Queue()
         self.process = multiprocessing.Process(target=randomness_analysis_worker, args=(args, cps, queue))
         self.process.start()
