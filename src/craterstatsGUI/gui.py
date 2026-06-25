@@ -2,7 +2,17 @@
 #  Licensed under BSD 3-Clause License. See LICENSE.txt for details.
 
 import sys
-log = open("craterstats.log", "w", buffering=1)
+import datetime
+import platform
+
+from craterstatsGUI import __version__
+
+log = open("craterstatsGUI.log", "w", buffering=1)
+log.write(f"CraterstatsGUI {__version__}\n")
+log.write(f"Platform: {platform.platform()}\n")
+log.write(f"Python: {sys.version.split()[0]}\n")
+log.write(f"Started: {datetime.datetime.now():%Y-%m-%d %H:%M:%S}\n")
+log.write("-" * 60 + "\n\n")
 sys.stdout = log
 sys.stderr = log
 
@@ -32,7 +42,7 @@ import craterstats as cst
 import craterstats.gm as gm
 import craterstats.cli as cli
 
-from craterstatsGUI import __version__
+
 
 class App(ctk.CTk):
 
