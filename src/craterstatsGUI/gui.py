@@ -388,7 +388,11 @@ class App(ctk.CTk):
         src = self.GUIval['plot']['source'].get()
         pr = self.cps_dict['presentation']
         if pr == 'map':
-            scc = cst.Spatialcount(src)
+            try:
+                scc = cst.Spatialcount(src)
+            except:
+                self.print_error(f"unable to read spatial data from {src}")
+                return
             self.cps.create_map_plotspace()
             scc.plot(self.cps, grid=True)
             self.cps_dict['out'] = gm.filename(scc.filename, 'pn1','_map')

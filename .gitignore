@@ -12,3 +12,4 @@ demo/
 .coverage
 *.whl
 gallery/
+*.log
