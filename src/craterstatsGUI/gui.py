@@ -113,8 +113,8 @@ class App(ctk.CTk):
         self.global_options = ['3 sf', 'mu', 'invert', 'text_halo','ra_show','bins','tight']
         self.global_options_ui = ['3 sf', 'μ-notation', 'invert', 'text halo','randomness','bins','tight']
 
-        self.plot_toggles = ('age_left', 'show_age', 'isochron', 'error_bars', 'resurf', 'resurf_showall')
-        self.plot_toggles_ui = ('align age left', 'show age', 'isochron', 'error bars', 'resurf-correction', 'resurf-showall')
+        self.plot_toggles = ('hide','age_left', 'show_age', 'isochron', 'error_bars', 'resurf', 'resurf_showall')
+        self.plot_toggles_ui = ('hide','age left', 'show age', 'isochron', 'error bars', 'resurf. corr.', 'resurf. show all')
 
         self.psyms = [e[1] for e in cst.MARKERS]
         self.colours = [e[2] for e in cst.PALETTE]
@@ -705,7 +705,8 @@ class App(ctk.CTk):
         self.plot_toggles_checkboxes = [ctk.CTkCheckBox(master=self.plot_toggles_frame, text=self.plot_toggles_ui[i], variable=self.GUIval['plot'][e], command=self.request_update_event)
                               for i,e in enumerate(self.plot_toggles)]
         for i,e in enumerate(self.plot_toggles_checkboxes):
-            e.grid(row=1+i%2, column=i//2, pady=3, padx=5, sticky="nsew")
+            i1 = i if i==0 else i+1
+            e.grid(row=1+i1%2, column=i1//2, pady=3, padx=0, sticky="nsew")
 
         # Image Frame (Resizable)
         self.image_frame = ctk.CTkFrame(self)
@@ -1020,7 +1021,8 @@ class App(ctk.CTk):
         self.label_dmin.configure(state=ctk.NORMAL if self.cps_dict['presentation'] == 'uncertainty' else ctk.DISABLED) # d_min
 
         plot_type = self.GUIval['plot']['type'].get()
-        for i in (4,5): self.plot_toggles_checkboxes[i].configure(state=ctk.NORMAL if plot_type=='cumulative-fit' else ctk.DISABLED) # resurf, resurf-showall
+        for t in ('resurf', 'resurf_showall'):
+            self.plot_toggles_checkboxes[self.plot_toggles.index(t)].configure(state=ctk.NORMAL if plot_type=='cumulative-fit' else ctk.DISABLED) # resurf, resurf-showall
 
 
     def do_randomness_analysis(self):
