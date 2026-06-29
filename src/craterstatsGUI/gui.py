@@ -744,22 +744,28 @@ class App(ctk.CTk):
         if self.cps_dict['presentation'] in ('cumulative', 'differential', 'R-plot', 'Hartmann'):
             x0, y0 = self.pixel_to_data_coords(*self.press)
             x1, y1 = self.pixel_to_data_coords(event.x, event.y)
-            x0, x1 = (10 ** x0, 10 ** x1)
-            if x0>x1:
-                x0,x1 = (x1,x0)
-            #print(f"click pos: {x0:.02g}, {x1:.02g}")
-
             current_plot = self.listbox.curselection()
-            cpb = self.cps.craterplot[current_plot]
-            if cpb.binning != 'none':
-                bins = cpb.cratercount.generate_bins(cpb.binning, 10 ** self.cps.xrange)
-                bin0 = bins[max(np.searchsorted(bins, x0 * 1.0001) - 1,0)]
-                bin1 = bins[min(np.searchsorted(bins, x1 * .9999),len(bins) - 1)]
-                x0,x1 = (bin0,bin1)
+            cp = self.cps.craterplot[current_plot]
+            shift_down = bool(event.state & 0x0001)
+            match shift_down:
+                case False: # select d range
+                    x0, x1 = (10 ** x0, 10 ** x1)
+                    if x0>x1:
+                        x0,x1 = (x1,x0)
 
-            #print(f"current plot {current_plot}:",x0,x1)
-            self.GUIval['plot']["range"].set(f"{x0:.02g}, {x1:.02g}")
+                    if cp.binning != 'none':
+                        bins = cp.cratercount.generate_bins(cp.binning, 10 ** self.cps.xrange)
+                        bin0 = bins[max(np.searchsorted(bins, x0 * 1.0001) - 1,0)]
+                        bin1 = bins[min(np.searchsorted(bins, x1 * .9999),len(bins) - 1)]
+                        x0,x1 = (bin0,bin1)
+                    self.GUIval['plot']["range"].set(f"{x0:.02g}, {x1:.02g}")
+                case True: # set age offset
+                    offset0 = cp.offset_age
+                    offset = f"{offset0[0]+(x1-x0)*20:.0f}, {offset0[1]+(y1-y0)*(10 if self.cps_dict['presentation'] == 'differential' else 20):.0f}"
+                    self.GUIval['plot']["offset_age"].set(offset)
             self.request_update_event()
+
+
 
     def pixel_to_data_coords(self,x,y):
         norm_x = x / self.current_image_size[0] / self.scaling
@@ -1011,18 +1017,22 @@ class App(ctk.CTk):
 
     def update_disabled_controls(self):
         f = self.GUIval['plot']['source'].get()
+        pr = self.cps_dict['presentation']
         shape_present = gm.filename(f,'e') in ('.scc','.shp') and gm.file_exists(f)
         ra_present = shape_present and gm.file_exists(gm.filename(f,'pn1','_ra.txt'))
         self.button_ra.configure(state=ctk.NORMAL if shape_present else ctk.DISABLED)
         self.radiobuttons_presentation[8].configure(state=ctk.NORMAL if shape_present else ctk.DISABLED) # map
         self.radiobuttons_presentation[9].configure(state=ctk.NORMAL if ra_present else ctk.DISABLED) # sdaa
         self.radiobuttons_presentation[10].configure(state=ctk.NORMAL if ra_present else ctk.DISABLED) # m2cnd
-        self.legend_checkboxes[7].configure(state=ctk.NORMAL if self.cps_dict['presentation'] == 'sequence' else ctk.DISABLED) # age
-        self.label_dmin.configure(state=ctk.NORMAL if self.cps_dict['presentation'] == 'uncertainty' else ctk.DISABLED) # d_min
+        self.legend_checkboxes[7].configure(state=ctk.NORMAL if pr == 'sequence' else ctk.DISABLED) # age
+        self.label_dmin.configure(state=ctk.NORMAL if pr == 'uncertainty' else ctk.DISABLED) # d_min
 
         plot_type = self.GUIval['plot']['type'].get()
         for t in ('resurf', 'resurf_showall'):
             self.plot_toggles_checkboxes[self.plot_toggles.index(t)].configure(state=ctk.NORMAL if plot_type=='cumulative-fit' else ctk.DISABLED) # resurf, resurf-showall
+
+        # change interface labels
+        self.label_xrange.configure(text="log x-range" if pr in ('cumulative', 'differential', 'R-plot', 'Hartmann') else "t-range")
 
 
     def do_randomness_analysis(self):
