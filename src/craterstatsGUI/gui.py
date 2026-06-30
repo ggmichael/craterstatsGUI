@@ -7,14 +7,15 @@ import platform
 
 from craterstatsGUI import __version__
 
-log = open("craterstatsGUI.log", "w", buffering=1)
-log.write(f"CraterstatsGUI {__version__}\n")
-log.write(f"Platform: {platform.platform()}\n")
-log.write(f"Python: {sys.version.split()[0]}\n")
-log.write(f"Started: {datetime.datetime.now():%Y-%m-%d %H:%M:%S}\n")
-log.write("-" * 60 + "\n\n")
-sys.stdout = log
-sys.stderr = log
+if getattr(sys, "frozen", False): # redirect if running executable
+    log = open("craterstatsGUI.log", "w", buffering=1)
+    log.write(f"CraterstatsGUI {__version__}\n")
+    log.write(f"Platform: {platform.platform()}\n")
+    log.write(f"Python: {sys.version.split()[0]}\n")
+    log.write(f"Started: {datetime.datetime.now():%Y-%m-%d %H:%M:%S}\n")
+    log.write("-" * 60 + "\n\n")
+    sys.stdout = log
+    sys.stderr = log
 
 import argparse
 import copy
@@ -25,7 +26,6 @@ from queue import Empty
 import os
 from pathlib import Path
 import re
-import sys
 import shlex
 import time
 import webbrowser
@@ -259,9 +259,6 @@ class App(ctk.CTk):
                 if match:
                     v1, v2 = (match.group(1), match.group(2))
                     set_dict[k] = (v1,v2)
-                else:
-                    pr = self.GUIval['set']['presentation'].get()
-                    set_dict[k] = cst.DEFAULT_XRANGE[pr] if k=='xrange' else cst.DEFAULT_YRANGE[pr]
             elif k in ['n_samples']:
                 set_dict[k] = int(v)
             elif k in ['min_diameter','ref_diameter']:
@@ -416,9 +413,10 @@ class App(ctk.CTk):
             cpl = [cst.Craterplot(d) for d in self.cp_dicts]
             self.cps.craterplot = cpl
 
-            if cpl and self.cps.presentation not in ('sequence', 'uncertainty', 'Hartmann','chronology','rate'):
-                self.cps.autoscale(self.cps_dict['xrange'] if self.GUIval['set']['xrange'].get() != '' else None,
-                              self.cps_dict['yrange'] if self.GUIval['set']['yrange'].get() != '' else None)
+            if cpl and self.cps.presentation not in ('sequence', 'uncertainty', 'chronology','rate'):
+                xrange = self.cps_dict['xrange'] if 'xrange' in self.cps_dict else None
+                yrange = self.cps_dict['yrange'] if 'yrange' in self.cps_dict else None
+                self.cps.autoscale(xrange,yrange)
 
             self.cps.draw()
             if self.cps.presentation == 'uncertainty':
