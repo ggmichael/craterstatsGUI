@@ -20,7 +20,12 @@ Double-click the executable to launch the GUI, or call with parameters from cons
 The plot files used to generate [Gallery](https://github.com/ggmichael/craterstats/blob/main/docs/gallery.md) images 
 can be found in the `demo/` folder of the installation.
 
+### GUI tips
+
+- Set the diameter range for the current overplot using a mouse click-drag in the plot window
+- Adjust the position offset of an age label using a mouse shift-click-drag in the plot window
 
 ### Bug reports
 
-Please open a GitHib [issue](https://github.com/ggmichael/craterstatsGUI/issues) if you have an account; alternatively, contact the author by email.
+Please open a GitHub [issue](https://github.com/ggmichael/craterstatsGUI/issues) if you have an account; alternatively, contact the author by email. 
+It may be helpful to provide craterstatsGUI.log from the program folder. 

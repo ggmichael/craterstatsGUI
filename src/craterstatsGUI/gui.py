@@ -284,11 +284,12 @@ class App(ctk.CTk):
                 elif k == 'type':
                     cp[k] = cst.OPLOT_TYPES_SHORT[cli.decode_abbreviation(cst.OPLOT_TYPES, v, allow_ambiguous=True)]
                 elif k in ['range','offset_age']:
-                    match = re.search(r'(.+?),(.+)', v)
-                    if match:
-                        cp[k] = [match.group(1),match.group(2)]
-                    else:
+                    try:
+                        x, y = map(float, v.split(','))
+                    except (ValueError, TypeError):
                         cp[k] = ['0','inf'] if k=='range' else ['0','0']
+                    else:
+                        cp[k] = [x,y]
                 else:
                     cp[k] = v
 
@@ -1078,7 +1079,7 @@ class App(ctk.CTk):
         self.last_keypress_time = time.time() # Update the last change time when a key is released
         if self.update_timer_id is not None: # If there's an existing timer, cancel it
             self.after_cancel(self.update_timer_id)
-        self.update_timer_id = self.after(500, self.request_update_event) # Set a new timer to check for updates after 0.5 seconds
+        self.update_timer_id = self.after(700, self.request_update_event) # Set a new timer to check for updates after XXX ms
 
     def on_resize(self, event):
         width = self.winfo_width()
