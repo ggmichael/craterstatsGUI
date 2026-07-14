@@ -64,7 +64,7 @@ class App(ctk.CTk):
         self.cps_dict = copy.deepcopy(cst.DEFAULTS['set'])
         self.cp_dicts = [copy.deepcopy(cst.DEFAULTS['plot'])]
         self.set_GUI_values()
-        self.update_disabled_controls()
+        self.update_controls_states()
 
         self.toplevel_window_about = None
         self.update_idletasks()
@@ -128,7 +128,7 @@ class App(ctk.CTk):
                          'style', 'format', 'min_diameter', 'global_area', 'n_samples', 'ra_offset',
                          'type', 'binning'):
                     GUIval[d][k] = ctk.StringVar(value = v if v else 'None')
-                elif k in ('title', 'isochrons', 'source', 'name'):
+                elif k in ('title', 'isochrons', 'select', 'source', 'name'):
                     GUIval[d][k] = ctk.StringVar(value=v if v else '')
                 elif k in {'invert', 'transparent', 'text_halo', 'mu', 'ra_show','tight', 'bins',
                             'snap', 'error_bars', 'hide', 'age_left', 'show_age', 'resurf', 'resurf_showall', 'isochron'}:
@@ -297,9 +297,9 @@ class App(ctk.CTk):
                 cp_dicts.append(cp)
 
         if 'randomness_analysis' in set_dict:
-            set_dict = {k:set_dict[k] for k in ('randomness_analysis','presentation','title','invert','tight','measure','format') if k in set_dict}
+            set_dict = {k:set_dict[k] for k in ('randomness_analysis','presentation','select','title','invert','tight','measure','format') if k in set_dict}
         self.cps_dict = cli.construct_cps_dict(argparse.Namespace(**set_dict), cst.DEFAULTS['set'].copy(), self.functions)
-        for k in ('tight','randomness_analysis'):
+        for k in ('tight','randomness_analysis','select'):
             if k in set_dict:
                 self.cps_dict[k] = set_dict[k]
         self.cp_dicts = cp_dicts
@@ -352,7 +352,7 @@ class App(ctk.CTk):
                     v = 1 if v else 0
                 cs.append(f"-{k} {v}")
 
-        if self.cps_dict['presentation'] not in ('uncertainty','map','sdaa','m2cnd'):
+        if pr not in ('uncertainty','map','sdaa','m2cnd'):
             for i,cp in enumerate(self.cp_dicts):
                 s=[]
                 for k,v in cp.items():
@@ -401,6 +401,14 @@ class App(ctk.CTk):
             ra.calculate_stats()
 
             measure = self.cps_dict['presentation']
+            selection = ra_decode_selection(self.cps_dict['select'])
+            # for measure in cps.measure:
+            #     if selection == [0]:
+            #         ra.plot_n_sigma(cps, measure)
+            #         savefig(f'-{measure}-n_sigma')
+            #     else:
+            #         ra.plot_montecarlo_split(cps, measure, selection=selection)
+            #         savefig(f'-{measure}')
             match None:
                 case None:
                     ra.plot_montecarlo_split(self.cps, measure)
@@ -544,6 +552,11 @@ class App(ctk.CTk):
         self.entry_isochrons = ctk.CTkEntry(self.functions_frame, textvariable=self.GUIval['set']['isochrons'])
         self.entry_isochrons.grid(row=5, column=1, padx=10, pady=(5,5),sticky="ew")
         self.entry_isochrons.bind("<KeyRelease>", self.on_key_release)
+
+        self.entry_selection = ctk.CTkEntry(self.functions_frame, textvariable=self.GUIval['set']['select'])
+        self.entry_selection.grid(row=5, column=1, padx=10, pady=(5,5),sticky="ew")
+        self.entry_selection.bind("<KeyRelease>", self.on_key_release)
+        self.entry_selection.grid_remove() # start hidden
 
 
         # range sub-frame
@@ -984,6 +997,18 @@ class App(ctk.CTk):
 
         self.prepare_commandline()
         pr = self.GUIval['set']['presentation'].get()
+
+        # change interface labels
+        self.label_xrange.configure(text="t-range" if pr in ('chronology', 'rate', 'sequence', 'uncertainty') else "log x-range")
+        if pr in ('sdaa', 'm2cnd'):
+            self.label_isochrons.configure(text="Bin selection")
+            self.entry_isochrons.grid_remove()
+            self.entry_selection.grid()
+        else:
+            self.label_isochrons.configure(text="     Isochrons") # spaces make cleaner transition
+            self.entry_selection.grid_remove()
+            self.entry_isochrons.grid()
+
         need_update_button = pr in ('sdaa','m2cnd') or (pr == 'uncertainty' and self.uncertainty_ui_hash != self.hash_uncertainty_params())
         if need_update_button:
             self.button_update.configure(state=ctk.NORMAL)
@@ -1011,10 +1036,10 @@ class App(ctk.CTk):
             self.draw()
             self.button_update.configure(state=ctk.DISABLED)
             self.button_update.configure(fg_color=self.standard_colour)
-            self.update_disabled_controls()
+            self.update_controls_states()
             self.update_idletasks()
 
-    def update_disabled_controls(self):
+    def update_controls_states(self):
         f = self.GUIval['plot']['source'].get()
         pr = self.cps_dict['presentation']
         shape_present = gm.filename(f,'e') in ('.scc','.shp') and gm.file_exists(f)
@@ -1030,8 +1055,7 @@ class App(ctk.CTk):
         for t in ('resurf', 'resurf_showall'):
             self.plot_toggles_checkboxes[self.plot_toggles.index(t)].configure(state=ctk.NORMAL if plot_type=='cumulative-fit' else ctk.DISABLED) # resurf, resurf-showall
 
-        # change interface labels
-        self.label_xrange.configure(text="log x-range" if pr in ('cumulative', 'differential', 'R-plot', 'Hartmann') else "t-range")
+
 
 
     def do_randomness_analysis(self):
