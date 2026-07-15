@@ -401,21 +401,14 @@ class App(ctk.CTk):
             ra.calculate_stats()
 
             measure = self.cps_dict['presentation']
-            selection = ra_decode_selection(self.cps_dict['select'])
-            # for measure in cps.measure:
-            #     if selection == [0]:
-            #         ra.plot_n_sigma(cps, measure)
-            #         savefig(f'-{measure}-n_sigma')
-            #     else:
-            #         ra.plot_montecarlo_split(cps, measure, selection=selection)
-            #         savefig(f'-{measure}')
-            match None:
-                case None:
-                    ra.plot_montecarlo_split(self.cps, measure)
-                case 0:
-                    ra.plot_n_sigma(self.cps, measure)
-                case _:
-                    ra.plot_map_and_histogram(self.cps, measure, list(ra.montecarlo[measure]['stats'].keys())[args.only - 1])
+            selection = cst.ra_decode_selection(self.cps_dict['select'])
+
+            if selection == [0]:
+                ra.plot_n_sigma(self.cps, measure)
+                self.file_tag='n_sigma'
+            else:
+                ra.plot_montecarlo_split(self.cps, measure, selection=selection)
+
         else:
             for d in self.cp_dicts:
                 if isinstance(d['colour'], int): d['colour'] = self.cps.palette[d['colour']]
@@ -742,6 +735,7 @@ class App(ctk.CTk):
 
         self.button_update = ctk.CTkButton(master=self.command_frame, command=self.do_update_event, text="Update", width=100, state=ctk.DISABLED)
         self.button_update.grid(row=0, column=1, padx=10, pady=10, sticky="e")
+        self.bind("<Return>", lambda e: self.button_update.cget("state") == "normal" and self.button_update.invoke())
 
         self.progressbar = ctk.CTkProgressBar(master=self.command_frame)
         self.progressbar.grid(row=1, column=0, columnspan=2,padx=(10, 10), pady=5, sticky="nsew")
@@ -752,6 +746,7 @@ class App(ctk.CTk):
 
     def on_press(self, event):
         self.press = (event.x,event.y)
+
     def on_release(self, event):
         if self.cps_dict['presentation'] in ('cumulative', 'differential', 'R-plot', 'Hartmann'):
             x0, y0 = self.pixel_to_data_coords(*self.press)
