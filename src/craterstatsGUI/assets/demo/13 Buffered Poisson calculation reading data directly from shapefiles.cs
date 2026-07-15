@@ -1,0 +1,5 @@
+-title 'Buffered Poisson calculation reading data directly from shapefiles'
+-cs MarsNeukumIvanov2001
+-ep mars
+-p source=%sample%/ejecta01_CRATER.shp
+-p range=[0.17,1],type=b-poisson
