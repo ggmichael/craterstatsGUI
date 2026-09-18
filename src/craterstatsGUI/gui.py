@@ -69,7 +69,7 @@ class App(ctk.CTk):
         self.toplevel_window_about = None
         self.update_idletasks()
         self.width,self.height = (0,0)
-        self.min_dim = (self.winfo_reqwidth(),self.winfo_reqheight())
+        self.min_dim = (round(self.winfo_reqwidth()/self._get_window_scaling()),round(self.winfo_reqheight()/self._get_window_scaling()))
         self.geometry(f"{self.min_dim[0]}x{self.min_dim[1]}")
         self.minsize(*self.min_dim)
         self.bind('<Configure>', self.on_resize)
@@ -100,11 +100,11 @@ class App(ctk.CTk):
         self.epochs = ['None']+[e['name'].split(', ', 1) for e in self.functions['epochs']]
         self.equilibrium = ['None']+[e['name'] for e in self.functions['equilibrium']]
 
-
         image_path = self.path + r"assets/images/cs.png"
         image = Image.open(image_path)
         self.image_dim = 700
-        self.photo = ctk.CTkImage(light_image=image, dark_image=image,size=(self.image_dim,self.image_dim))
+        display_size = (self.image_dim,self.image_dim)
+        self.photo = ctk.CTkImage(light_image=image, dark_image=image, size=display_size)
 
         self.legend_options = ['functions', 'name', 'area', 'perimeter', 'number', 'range', 'N(d_ref)', 'age']
         self.legend_codes = 'fnapcrNA'
@@ -774,17 +774,6 @@ class App(ctk.CTk):
     def pixel_to_data_coords(self,x,y):
         norm_x = x / self.current_image_size[0] / self.scaling
         norm_y = 1 - (y / self.current_image_size[1] / self.scaling)
-        # bbox = self.cps.ax.get_position()  # axes position in figure coords
-        # ax_norm_x = (norm_x - bbox.x0) / (bbox.x1 - bbox.x0)
-        # ax_norm_y = (norm_y - bbox.y0) / (bbox.y1 - bbox.y0)
-        # print(f"x {x} image_dim {self.image_dim}  scaling {self.scaling} norm_x {norm_x} bbox {bbox} xlim {self.cps.ax.get_xlim()}")
-        #
-        # # convert axes-normalized to data coordinates
-        # ylim0, ylim1 = (np.log10(self.cps.ax.get_ylim()[0]), np.log10(self.cps.ax.get_ylim()[1]))
-        # x_data = self.cps.ax.get_xlim()[0] + ax_norm_x * (self.cps.ax.get_xlim()[1] - self.cps.ax.get_xlim()[0])
-        # y_data = ylim0 + ax_norm_y * (ylim1 - ylim0)
-        # print(x_data,y_data)
-        # print(norm_x,norm_y,self.cps.position_to_data_coords(norm_x,norm_y))
         x_data, y_data = self.cps.position_to_data_coords(norm_x,norm_y)
         return x_data,y_data
 
