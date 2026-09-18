@@ -434,10 +434,8 @@ class App(ctk.CTk):
         self.poll_queue(queue)
 
     def resize_image(self, event):
-        self.image_dim = (min(event.width,event.height)-110) / self.scaling # make slightly smaller than padding margin
-        #print(self.image_dim)
+        self.image_dim = min(event.width,event.height)
         self.update_image()
-
 
     def update_image(self):
         if self.cps:
@@ -451,15 +449,14 @@ class App(ctk.CTk):
             img_array = img_array.reshape(self.cps.fig.canvas.get_width_height()[::-1] + (4,))
             rgba_array = img_array[..., [1, 2, 3, 0]]
             img_pil = Image.fromarray(rgba_array, 'RGBA')
-            ctk_img = ctk.CTkImage(light_image=img_pil, dark_image=img_pil, size=img_pil.size)
+
+            scale = self._get_window_scaling()
+            display_size = ( round(img_pil.width / scale),round(img_pil.height / scale) )
+            ctk_img = ctk.CTkImage(light_image=img_pil, dark_image=img_pil, size=display_size)
 
             self.current_image_size = img_pil.size
-            self.image.configure(image=ctk_img,width=img_pil.size[0],height=img_pil.size[1])
-            self.image.update()
-
-            # Force the window to update its size
-            self.update_idletasks()
-            self.update()
+            self.image.configure(image=ctk_img)
+            self.update_idletasks() # Force the window to update its size
 
     def layout_GUI(self):
 
