@@ -412,7 +412,12 @@ class App(ctk.CTk):
         else:
             for d in self.cp_dicts:
                 if isinstance(d['colour'], int): d['colour'] = self.cps.palette[d['colour']]
-            cpl = [cst.Craterplot(d) for d in self.cp_dicts]
+            try:
+                cpl = [cst.Craterplot(d) for d in self.cp_dicts]
+            except Exception as e:
+                self.print_error(e)
+                return
+
             self.cps.craterplot = cpl
 
             if cpl and self.cps.presentation not in ('sequence', 'uncertainty', 'chronology','rate'):
