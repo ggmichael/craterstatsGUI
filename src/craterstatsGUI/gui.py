@@ -32,7 +32,6 @@ import webbrowser
 
 import tkinter as tk
 import customtkinter as ctk
-import CTkListbox as ctk_Listbox
 from PIL import Image
 
 import numpy as np
@@ -42,7 +41,7 @@ import craterstats as cst
 import craterstats.gm as gm
 import craterstats.cli as cli
 
-
+from layout import layout_GUI
 
 class App(ctk.CTk):
 
@@ -59,7 +58,8 @@ class App(ctk.CTk):
 
         self.populate_option_names()
         self.create_GUIdict()
-        self.layout_GUI()
+        #self.layout_GUI()
+        layout_GUI(self)
 
         self.cps_dict = copy.deepcopy(cst.DEFAULTS['set'])
         self.cp_dicts = [copy.deepcopy(cst.DEFAULTS['plot'])]
@@ -113,8 +113,8 @@ class App(ctk.CTk):
         self.global_options = ['3 sf', 'mu', 'invert', 'text_halo','ra_show','bins','tight']
         self.global_options_ui = ['3 sf', 'μ-notation', 'invert', 'text halo','randomness','bins','tight']
 
-        self.plot_toggles = ('hide','age_left', 'show_age', 'isochron', 'error_bars', 'resurf', 'resurf_showall')
-        self.plot_toggles_ui = ('hide','age left', 'show age', 'isochron', 'error bars', 'resurf. corr.', 'resurf. show all')
+        self.plot_toggles = ('hide','buffered','age_left', 'show_age', 'isochron', 'error_bars', 'resurf', 'resurf_showall')
+        self.plot_toggles_ui = ('hide','buffered','age left', 'show age', 'isochron', 'error bars', 'resurf. corr.', 'resurf. show all')
 
         self.psyms = [e[1] for e in cst.MARKERS]
         self.colours = [e[2] for e in cst.PALETTE]
@@ -128,9 +128,9 @@ class App(ctk.CTk):
                          'style', 'format', 'min_diameter', 'global_area', 'n_samples', 'ra_offset',
                          'type', 'binning'):
                     GUIval[d][k] = ctk.StringVar(value = v if v else 'None')
-                elif k in ('title', 'isochrons', 'select', 'source', 'name'):
+                elif k in ('title', 'isochrons', 'select', 'source', 'shp_area', 'name'):
                     GUIval[d][k] = ctk.StringVar(value=v if v else '')
-                elif k in {'invert', 'transparent', 'text_halo', 'mu', 'ra_show','tight', 'bins',
+                elif k in {'invert', 'transparent', 'text_halo', 'mu', 'ra_show','tight', 'bins', 'buffered',
                             'snap', 'error_bars', 'hide', 'age_left', 'show_age', 'resurf', 'resurf_showall', 'isochron'}:
                     GUIval[d][k] = ctk.BooleanVar(value = v==1)
                 elif k == 'psym':
@@ -365,8 +365,8 @@ class App(ctk.CTk):
                     else:
                         default = v == cst.DEFAULTS['plot'][k]
                     if not default:
-                        if k in ('source','name'):
-                            if k=='source':
+                        if k in ('source','shp_area','name'):
+                            if k in ('source','shp_area'):
                                 v = relative_path_if_possible(v, self.workdir)
                             v = f'"{v}"' if shlex.quote(v)!=v else v
                         elif k in ('offset_age','range'):
@@ -463,289 +463,6 @@ class App(ctk.CTk):
             self.image.configure(image=ctk_img)
             self.update_idletasks() # Force the window to update its size
 
-    def layout_GUI(self):
-
-        # configure window
-        self.title("Craterstats-III")
-        self.iconbitmap(self.path + r'assets/images/cs.ico')
-        ctk.set_widget_scaling(self.scaling)  # can look nicer, but also scales plot image: would need to scale click coords
-
-        # Grid configuration for resizing
-        self.grid_columnconfigure(0, weight=0)
-        self.grid_columnconfigure(1, weight=0)
-        self.grid_columnconfigure(2, weight=0)
-        self.grid_columnconfigure(3, weight=1)  # Allow column 3 to resize for image_frame
-        self.grid_columnconfigure(4, weight=0)
-        self.grid_rowconfigure(0, weight=0)
-        self.grid_rowconfigure(1, weight=0)
-        self.grid_rowconfigure(2, weight=0)
-        self.grid_rowconfigure(3, weight=1) # Allow to resize for image_frame
-
-        # menu frame
-        self.menu_frame = ctk.CTkFrame(self)
-        self.menu_frame.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky="nsew")
-        self.button_menu_file = ctk.CTkOptionMenu(self.menu_frame, dynamic_resizing=False, values=["Open", "Save...", "Close", "Exit"], command=self.menu_file)
-        self.button_menu_file.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
-        self.button_menu_file.set("File")
-        # self.button_menu_export = ctk.CTkOptionMenu(self.menu_frame, dynamic_resizing=False, values=["Map"], command=self.menu_export)
-        # self.button_menu_export.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-        # self.button_menu_export.set("Export")
-        self.button_menu_about = ctk.CTkButton(self.menu_frame, text="About", command=self.menu_about)
-        self.button_menu_about.grid(row=0, column=3, padx=5, pady=5, sticky="ew")
-
-        # presentation frame
-        self.presentation_frame = ctk.CTkFrame(self)
-        self.presentation_frame.grid(row=1, column=0, rowspan=1, padx=5, pady=5, sticky="nsew")
-        self.label_presentation = ctk.CTkLabel(master=self.presentation_frame, text="Presentation")
-        self.label_presentation.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky="")
-
-        self.radiobuttons_presentation = []
-        for i, e in enumerate(cst.PRESENTATIONS):
-            rb = ctk.CTkRadioButton(master=self.presentation_frame, variable=self.GUIval['set']['presentation'], value=e, text=e,  command=self.presentation_event)
-            self.radiobuttons_presentation.append(rb)
-            if i<=8:
-                rb.grid(row=i % 6 + 1, column=i // 6, pady=3, padx=10, sticky="n")
-            else:
-                rb.grid(row=i % 6 + 2, column=i // 6, pady=3, padx=10, sticky="n")
-        self.label_randomness = ctk.CTkLabel(master=self.presentation_frame, text="Randomness")
-        self.label_randomness.grid(row=4, column=1, columnspan=1, padx=10, pady=[10,0], sticky="")
-
-
-
-        # functions frame
-        self.functions_frame = ctk.CTkFrame(self)
-        self.functions_frame.grid(row=1, column=1, columnspan=2, padx=5, pady=5, sticky="nsew")
-
-        self.label_body = ctk.CTkLabel(self.functions_frame, text="Body")
-        self.label_body.grid(row=0, column=0, columnspan=1, padx=(10,0), pady=(10,5), sticky="e")
-        self.optionmenu_body = ctk.CTkOptionMenu(self.functions_frame, dynamic_resizing=False, values=self.body, command=self.body_event, variable=self.body_val)
-        self.optionmenu_body.grid(row=0, column=1, padx=10, pady=(10,5),sticky="ew")
-
-        self.label_cs = ctk.CTkLabel(master=self.functions_frame, text="Chronology system")
-        self.label_cs.grid(row=1, column=0, columnspan=1, padx=(10,0), pady=(5,5), sticky="e")
-        self.optionmenu_cs = ctk.CTkOptionMenu(self.functions_frame, dynamic_resizing=False, values=[], command=self.chronology_system_event, variable=self.cs_val)
-        self.optionmenu_cs.grid(row=1, column=1, padx=10, pady=(5,5), sticky="ew")
-
-        self.label_epochs = ctk.CTkLabel(self.functions_frame, text="Epochs")
-        self.label_epochs.grid(row=2, column=0, columnspan=1, padx=(10,0), pady=(5,5), sticky="e")
-        self.optionmenu_epochs = ctk.CTkOptionMenu(self.functions_frame, dynamic_resizing=False, values=[], variable=self.GUIval['set']['epochs'], command=self.request_update_event)
-        self.optionmenu_epochs.grid(row=2, column=1, padx=10, pady=(5,5),sticky="ew")
-
-        self.label_equilibrium = ctk.CTkLabel(self.functions_frame, text="Equilibrium function")
-        self.label_equilibrium.grid(row=3, column=0, columnspan=1, padx=(10,0), pady=(5,5), sticky="e")
-        self.optionmenu_equilibrium = ctk.CTkOptionMenu(self.functions_frame, dynamic_resizing=False, values=self.equilibrium, variable=self.GUIval['set']['equilibrium'], command=self.request_update_event)
-        self.optionmenu_equilibrium.grid(row=3, column=1, padx=10, pady=(5,5),sticky="ew")
-
-        self.label_title = ctk.CTkLabel(self.functions_frame, text="Title")
-        self.label_title.grid(row=4, column=0, columnspan=1, padx=(10,0), pady=(5,5), sticky="e")
-        self.entry_title = ctk.CTkEntry(self.functions_frame, textvariable=self.GUIval['set']['title'])
-        self.entry_title.grid(row=4, column=1, padx=10, pady=(5,5),sticky="ew")
-        self.entry_title.bind("<KeyRelease>", self.on_key_release)
-
-        self.label_isochrons = ctk.CTkLabel(self.functions_frame, text="Isochrons")
-        self.label_isochrons.grid(row=5, column=0, columnspan=1, padx=(10,0), pady=(5,5), sticky="e")
-        self.entry_isochrons = ctk.CTkEntry(self.functions_frame, textvariable=self.GUIval['set']['isochrons'])
-        self.entry_isochrons.grid(row=5, column=1, padx=10, pady=(5,5),sticky="ew")
-        self.entry_isochrons.bind("<KeyRelease>", self.on_key_release)
-
-        self.entry_selection = ctk.CTkEntry(self.functions_frame, textvariable=self.GUIval['set']['select'])
-        self.entry_selection.grid(row=5, column=1, padx=10, pady=(5,5),sticky="ew")
-        self.entry_selection.bind("<KeyRelease>", self.on_key_release)
-        self.entry_selection.grid_remove() # start hidden
-
-
-        # range sub-frame
-        self.range_frame = ctk.CTkFrame(self.functions_frame)
-        self.range_frame.grid(row=6, column=1, columnspan=1, padx=(0, 0), pady=(0, 0), sticky="nsew")
-
-        self.label_xrange = ctk.CTkLabel(self.functions_frame, text="log x-range")
-        self.label_xrange.grid(row=6, column=0, columnspan=1, padx=(10,0), pady=(5,5), sticky="e")
-        self.entry_xrange = ctk.CTkEntry(self.range_frame, width=80, textvariable=self.GUIval['set']['xrange'])
-        self.entry_xrange.grid(row=0, column=0, padx=10, pady=(5,5),sticky="ew")
-        self.entry_xrange.bind("<KeyRelease>", self.on_key_release)
-
-        self.label_yrange = ctk.CTkLabel(self.range_frame, text="log y-range")
-        self.label_yrange.grid(row=0, column=1, columnspan=1, padx=(10,0), pady=(5,5), sticky="e")
-        self.entry_yrange = ctk.CTkEntry(self.range_frame, width=80, textvariable=self.GUIval['set']['yrange'])
-        self.entry_yrange.grid(row=0, column=2, padx=10, pady=(5,5),sticky="w")
-        self.entry_yrange.bind("<KeyRelease>", self.on_key_release)
-
-        # self.label_ra_offset = ctk.CTkLabel(self.range_frame, text="ra_offset")
-        # self.label_ra_offset.grid(row=0, column=3, columnspan=1, padx=(10,0), pady=(5,5), sticky="e")
-        # self.entry_ra_offset = ctk.CTkEntry(self.range_frame, textvariable=self.GUIval['set']["ra_offset"])
-        # self.entry_ra_offset.grid(row=0, column=4, padx=10, pady=(5,5),sticky="ew")
-
-
-        # legend frame
-        self.legend_frame = ctk.CTkFrame(self)
-        self.legend_frame.grid(row=2, column=0, columnspan=2, padx=5, pady=5, sticky="nsew")
-
-        self.label_legend = ctk.CTkLabel(master=self.legend_frame, text="Legend")
-        self.label_legend.grid(row=0, column=0, columnspan=2, padx=10, pady=5, sticky="")
-
-        self.legend_checkboxes = []
-        for i, e in enumerate(self.legend_options):
-            cb = ctk.CTkCheckBox(master=self.legend_frame, text=e, variable=self.GUIval['set']['legend_elements'][i], command=self.request_update_event)
-            cb.grid(row=1 + i % 4, column=i // 4, pady=3, padx=10, sticky="nw")
-            self.legend_checkboxes.append(cb)
-
-        # global options frame
-        self.global_frame = ctk.CTkFrame(self)
-        self.global_frame.grid(row=2, column=2, padx=5, pady=5, sticky="nsew")
-
-        self.label_global = ctk.CTkLabel(master=self.global_frame, text="Other settings")
-        self.label_global.grid(row=0, column=0, columnspan=2, padx=10, pady=5, sticky="")
-
-        save_options_i = 6 # first checkbox in save options column
-        for i, e in enumerate(self.global_options[:save_options_i]):
-            cb = ctk.CTkCheckBox(master=self.global_frame, text=self.global_options_ui[i], variable=self.GUIval['set'][e], command=self.request_update_event)
-            cb.grid(row=1 + i%4, column=i // 4, pady=3, padx=10, sticky="nw")
-
-        # dmin
-        self.dmin_frame = ctk.CTkFrame(self.global_frame,fg_color="transparent")
-        self.dmin_frame.grid(row=3, column=1, columnspan=1, padx=0, pady=0, sticky="nsew")
-        self.entry_dmin = ctk.CTkEntry(self.dmin_frame, width=50, textvariable=self.GUIval['set']['min_diameter'])
-        self.entry_dmin.grid(row=0, column=0, pady=3, padx=(5,0), sticky="nw")
-        self.entry_dmin.bind("<KeyRelease>", self.on_key_release)
-        self.label_dmin = ctk.CTkLabel(self.dmin_frame, text="d_min")
-        self.label_dmin.grid(row=0, column=1, columnspan=1, padx=(5,0), pady=(0,0), sticky="e")
-
-        # dref
-        self.dref_frame = ctk.CTkFrame(self.global_frame,fg_color="transparent")
-        self.dref_frame.grid(row=4, column=1, columnspan=1, padx=0, pady=0, sticky="nsew")
-        self.entry_dref = ctk.CTkEntry(self.dref_frame, width=50, textvariable=self.GUIval['set']['ref_diameter'])
-        self.entry_dref.grid(row=0, column=0, pady=3, padx=(5,0), sticky="nw")
-        self.entry_dref.bind("<KeyRelease>", self.on_key_release)
-        self.label_dref = ctk.CTkLabel(self.dref_frame, text="d_ref")
-        self.label_dref.grid(row=0, column=1, columnspan=1, padx=(5,0), pady=(0,0), sticky="e")
-
-        # save options frame
-        self.label_save = ctk.CTkLabel(master=self.global_frame, text="Save")
-        self.label_save.grid(row=0, column=2, columnspan=1, padx=10, pady=5, sticky="")
-
-        for i, e in enumerate(self.global_options[save_options_i:]): # for now, just tight
-            cb = ctk.CTkCheckBox(master=self.global_frame, text=self.global_options_ui[save_options_i+i], variable=self.GUIval['set'][e], command=self.request_update_event)
-            cb.grid(row=1 + (i+1)%4, column=2, pady=3, padx=10, sticky="nw")
-
-        for i, e in enumerate(self.formats):
-            cb = ctk.CTkCheckBox(master=self.global_frame, text=e, variable=self.GUIval['set']['format_elements'][i], command=self.request_update_event)
-            cb.grid(row=1 + (i+2)%4, column=2, pady=3, padx=10, sticky="nw")
-
-        # plot frame
-        self.plot_frame = ctk.CTkFrame(self)
-        self.plot_frame.grid(row=3, column=0, columnspan=3, padx=5, pady=5, sticky="nsew")
-
-        self.label_xxx = ctk.CTkLabel(self.plot_frame, text="Overplots")
-        self.label_xxx.grid(row=0, column=0, columnspan=1, padx=(10,0), pady=(5,5), sticky="ew")
-
-        self.listbox = ctk_Listbox.CTkListbox(self.plot_frame, command=self.plotlist_select,  justify='left') #height=100,
-        self.listbox.grid(row=1, column=0,  rowspan=4, padx=10, pady=0, sticky="nsew")
-
-        self.label_source = ctk.CTkLabel(self.plot_frame, text="source")
-        self.label_source.grid(row=0, column=1, columnspan=1, padx=(10,0), pady=(5,5), sticky="e")
-        self.entry_source = ctk.CTkEntry(self.plot_frame, textvariable=self.GUIval['plot']["source"])
-        self.entry_source.grid(row=0, column=2, columnspan=3,padx=(10,100), pady=(5,5),sticky="ew")
-        self.entry_source.bind("<Return>", self.request_update_event)
-
-        self.button_browse = ctk.CTkButton(self.plot_frame, text="Browse...", command=self.browse_source, width=80)
-        self.button_browse.grid(row=0, column=4, columnspan=1, padx=(0,10), pady=(5,5), sticky="e")
-
-        self.label_name = ctk.CTkLabel(self.plot_frame, text="name")
-        self.label_name.grid(row=1, column=1, columnspan=1, padx=(10,0), pady=(5,5), sticky="e")
-        self.entry_name = ctk.CTkEntry(self.plot_frame, textvariable=self.GUIval['plot']["name"])
-        self.entry_name.grid(row=1, column=2, padx=10, pady=(5,5),sticky="ew")
-        self.entry_name.bind("<KeyRelease>", self.on_key_release)
-
-        self.label_range = ctk.CTkLabel(self.plot_frame, text="range")
-        self.label_range.grid(row=1, column=3, columnspan=1, padx=(10,0), pady=(5,5), sticky="e")
-        self.entry_range = ctk.CTkEntry(self.plot_frame, textvariable=self.GUIval['plot']["range"])
-        self.entry_range.grid(row=1, column=4, padx=10, pady=(5,5),sticky="ew")
-        self.entry_range.bind("<KeyRelease>", self.on_key_release)
-
-        self.label_type = ctk.CTkLabel(self.plot_frame, text="plot type")
-        self.label_type.grid(row=2, column=1, columnspan=1, padx=(10,0), pady=(5,5), sticky="e")
-        self.optionmenu_type = ctk.CTkOptionMenu(self.plot_frame, dynamic_resizing=False, values=cst.OPLOT_TYPES, variable=self.GUIval['plot']["type"], command=self.request_update_event)
-        self.optionmenu_type.grid(row=2, column=2, padx=10, pady=(5,5),sticky="ew")
-
-        self.label_binning = ctk.CTkLabel(self.plot_frame, text="binning")
-        self.label_binning.grid(row=2, column=3, columnspan=1, padx=(10,0), pady=(5,5), sticky="e")
-        self.optionmenu_binning = ctk.CTkOptionMenu(self.plot_frame, dynamic_resizing=False, values=cst.Cratercount.BINNINGS, variable=self.GUIval['plot']["binning"], command=self.request_update_event)
-        self.optionmenu_binning.grid(row=2, column=4, padx=10, pady=(5,5),sticky="ew")
-
-        self.label_symbol = ctk.CTkLabel(self.plot_frame, text="symbol")
-        self.label_symbol.grid(row=3, column=1, columnspan=1, padx=(10,0), pady=(5,5), sticky="e")
-        self.optionmenu_symbol = ctk.CTkOptionMenu(self.plot_frame, dynamic_resizing=False, values=self.psyms, variable=self.GUIval['plot']["psym"], command=self.request_update_event)
-        self.optionmenu_symbol.grid(row=3, column=2, padx=10, pady=(5,5),sticky="ew")
-
-        self.label_colour = ctk.CTkLabel(self.plot_frame, text="colour")
-        self.label_colour.grid(row=3, column=3, columnspan=1, padx=(10,0), pady=(5,5), sticky="e")
-        self.optionmenu_colour = ctk.CTkOptionMenu(self.plot_frame, dynamic_resizing=False, values=self.colours, variable=self.GUIval['plot']["colour"], command=self.request_update_event)
-        #self.optionmenu_colour = ctk.CTkComboBox(self.plot_frame, values=self.colours, variable=self.GUIval['plot']["colour"],command=self.request_update_event) # works, but over-complicated
-        self.optionmenu_colour.grid(row=3, column=4, padx=10, pady=(5,5),sticky="ew")
-
-        self.label_offset = ctk.CTkLabel(self.plot_frame, text="offset")
-        self.label_offset.grid(row=4, column=1, columnspan=1, padx=(10,0), pady=(5,5), sticky="e")
-        self.entry_offset = ctk.CTkEntry(self.plot_frame, textvariable=self.GUIval['plot']["offset_age"])
-        self.entry_offset.grid(row=4, column=2, padx=10, pady=(5,5),sticky="ew")
-        self.entry_offset.bind("<KeyRelease>", self.on_key_release)
-
-        self.button_ra = ctk.CTkButton(self.plot_frame, text="Randomness analysis",state=ctk.DISABLED, command=self.do_randomness_analysis)
-        self.button_ra.grid(row=4, column=4, columnspan=1, padx=5, pady=5, sticky="ew")
-
-
-        # list buttons subframe
-        self.list_buttons_frame = ctk.CTkFrame(self.plot_frame,fg_color="transparent")
-        self.list_buttons_frame.grid(row=5, column=0, columnspan=1, padx=5, pady=5, sticky="nsew")
-        self.button_1 = ctk.CTkButton(self.list_buttons_frame, text="New", width=85, command=self.plotlist_new)
-        self.button_1.grid(row=0, column=0, padx=5, pady=5)
-        self.button_2 = ctk.CTkButton(self.list_buttons_frame, text="Delete", width=85, command=self.plotlist_delete)
-        self.button_2.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
-        self.button_3 = ctk.CTkButton(self.list_buttons_frame, text="Up", width=85, command=self.plotlist_up)
-        self.button_3.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-        self.button_4 = ctk.CTkButton(self.list_buttons_frame, text="Down", width=85, command=self.plotlist_down)
-        self.button_4.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
-
-
-        # plot_toggles sub-frame
-        self.plot_toggles_frame = ctk.CTkFrame(self.plot_frame,fg_color="transparent")
-        self.plot_toggles_frame.grid(row=5, column=1, columnspan=4, padx=(10, 10), pady=(10, 10), sticky="nsew")
-        self.plot_toggles_checkboxes = [ctk.CTkCheckBox(master=self.plot_toggles_frame, text=self.plot_toggles_ui[i], variable=self.GUIval['plot'][e], command=self.request_update_event)
-                              for i,e in enumerate(self.plot_toggles)]
-        for i,e in enumerate(self.plot_toggles_checkboxes):
-            i1 = i if i==0 else i+1
-            e.grid(row=1+i1%2, column=i1//2, pady=3, padx=0, sticky="nsew")
-
-        # Image Frame (Resizable)
-        self.image_frame = ctk.CTkFrame(self)
-        self.image_frame.grid(row=0, column=3, columnspan=2, rowspan=4, padx=5, pady=5, sticky="nsew")
-        self.image_frame.grid_rowconfigure(0, weight=1)  # Make sure the image inside the frame can expand
-        self.image_frame.grid_columnconfigure(0, weight=1)  # Allow resizing for the image column
-        self.image_frame.bind("<Configure>", self.resize_image)
-        self.image = ctk.CTkLabel(master=self.image_frame, text="", image=self.photo)
-        self.image.grid(row=0, column=0, padx=50, pady=50, sticky="nsew")  # Ensure it stretches within the frame
-
-        self.image.bind("<Button-1>", self.on_press)
-        self.image.bind("<ButtonRelease-1>", self.on_release)
-
-        # command frame
-        self.command_frame = ctk.CTkFrame(self) #, fg_color="transparent")
-        self.command_frame.grid(row=4, column=0, columnspan=5, padx=5, pady=5, sticky="nsew")
-        self.command_frame.grid_columnconfigure(0, weight=1)
-        self.command_frame.grid_columnconfigure(1, weight = 0)
-        self.textbox_command = ctk.CTkTextbox(master=self.command_frame,height=60)
-        self.textbox_command.grid(row=0, column=0, columnspan=1,padx=(10, 10), pady=5, sticky="nsew")
-
-        self.button_update = ctk.CTkButton(master=self.command_frame, command=self.do_update_event, text="Update", width=100, state=ctk.DISABLED)
-        self.button_update.grid(row=0, column=1, padx=10, pady=10, sticky="e")
-        self.bind("<Return>", lambda e: self.button_update.cget("state") == "normal" and self.button_update.invoke())
-
-        self.progressbar = ctk.CTkProgressBar(master=self.command_frame)
-        self.progressbar.grid(row=1, column=0, columnspan=2,padx=(10, 10), pady=5, sticky="nsew")
-        self.progressbar.set(1.0)
-
-        self.bind("<Button-1>", self.remove_entry_focus)
-
-
     def on_press(self, event):
         self.press = (event.x,event.y)
 
@@ -836,10 +553,15 @@ class App(ctk.CTk):
 
     def plotlist_gui2cp(self,i):
         for k in self.GUIval['plot']:
-            self.plotlist[i][k] = self.GUIval['plot'][k].get()
-            if k=='source': # scroll to right end of filename
-                self.entry_source.xview_moveto(1)
-                self.entry_source.icursor(len(self.entry_source.get()))
+            v = self.GUIval['plot'][k].get()
+            if k == 'shp_area':
+                self.plotlist[i][k] = None if v in ('None','') else v
+            else:
+                self.plotlist[i][k] = v
+
+        for w in (self.entry_source,self.entry_area): # scroll to right end of filenames
+            w.xview_moveto(1)
+            w.icursor(len(self.entry_source.get()))
 
     def plotlist_cp2gui(self,i):
         for k in self.GUIval['plot']:
@@ -955,6 +677,27 @@ class App(ctk.CTk):
             self.GUIval['plot']['name'].set(default_name)
             self.request_update_event()
 
+    def browse_area(self):
+        file_path = tk.filedialog.askopenfilename(
+            title="Select a File",
+            filetypes=[("Area shapefiles", ("*.shp"))],
+            initialdir=self.browse_dir if self.browse_dir else self.workdir,
+        )
+        if file_path:
+            self.browse_dir = gm.filename(file_path, 'p')
+            if not Path(self.browse_dir).resolve().is_relative_to(Path(self.workdir).resolve()):
+                self.workdir = self.browse_dir  # update workdir if browse_dir is not a child of it
+            self.entry_area.configure(state="normal")
+            self.entry_area.delete(0, ctk.END)
+            self.entry_area.insert(0, file_path)
+            self.entry_area.icursor(len(file_path))
+            self.entry_area.xview(len(file_path))
+            self.entry_area.configure(state="readonly")
+            default_name = gm.filename(file_path, 'n')
+            self.GUIval['plot']['default_name'].set(default_name)
+            self.GUIval['plot']['name'].set(default_name)
+            self.request_update_event()
+
     def body_event(self,v,update_event=True):
         values = [e[1] for e in self.cs if e[0] == v]
         self.optionmenu_cs.configure(values=values)
@@ -1036,6 +779,7 @@ class App(ctk.CTk):
         self.radiobuttons_presentation[10].configure(state=ctk.NORMAL if ra_present else ctk.DISABLED) # m2cnd
         self.legend_checkboxes[7].configure(state=ctk.NORMAL if pr == 'sequence' else ctk.DISABLED) # age
         self.label_dmin.configure(state=ctk.NORMAL if pr == 'uncertainty' else ctk.DISABLED) # d_min
+        self.button_browse_area.configure(state=ctk.NORMAL if gm.filename(f,'e')=='.shp' else ctk.DISABLED) # shp_area browse
 
         plot_type = self.GUIval['plot']['type'].get()
         for t in ('resurf', 'resurf_showall'):
