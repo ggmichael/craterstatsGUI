@@ -247,14 +247,17 @@ def layout_GUI(app):
     # list buttons subframe
     app.list_buttons_frame = ctk.CTkFrame(app.plot_frame, fg_color="transparent")
     app.list_buttons_frame.grid(row=5, column=0, columnspan=1, rowspan=2, padx=5, pady=5, sticky="nsew")
+    pad = 2
     app.button_1 = ctk.CTkButton(app.list_buttons_frame, text="New", width=85, command=app.plotlist_new)
-    app.button_1.grid(row=0, column=0, padx=5, pady=5)
-    app.button_2 = ctk.CTkButton(app.list_buttons_frame, text="Delete", width=85, command=app.plotlist_delete)
-    app.button_2.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
+    app.button_1.grid(row=0, column=0, padx=pad, pady=pad)
+    app.button_2 = ctk.CTkButton(app.list_buttons_frame, text="Duplicate", width=85, command=app.plotlist_duplicate)
+    app.button_2.grid(row=1, column=0, padx=pad, pady=pad, sticky="ew")
     app.button_3 = ctk.CTkButton(app.list_buttons_frame, text="Up", width=85, command=app.plotlist_up)
-    app.button_3.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+    app.button_3.grid(row=0, column=1, padx=pad, pady=pad, sticky="ew")
     app.button_4 = ctk.CTkButton(app.list_buttons_frame, text="Down", width=85, command=app.plotlist_down)
-    app.button_4.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
+    app.button_4.grid(row=1, column=1, padx=pad, pady=pad, sticky="ew")
+    app.button_5 = ctk.CTkButton(app.list_buttons_frame, text="Delete", width=85, command=app.plotlist_delete)
+    app.button_5.grid(row=2, column=0, padx=pad, pady=pad, sticky="ew")
 
     # plot_toggles sub-frame
     app.plot_toggles_frame = ctk.CTkFrame(app.plot_frame, fg_color="transparent")

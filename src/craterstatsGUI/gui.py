@@ -159,6 +159,23 @@ class App(ctk.CTk):
         self.cs_val = ctk.StringVar(value = '')
 
 
+    def convert_default_plt_values(self,d):
+        pld = {}
+        for k, v in d.items():
+            if k == 'psym':
+                pld[k] = self.psyms[v]
+            elif k == 'colour':
+                pld[k] = self.colours[v] if isinstance(v, int) else v
+            elif k == 'type':
+                pld[k] = cst.OPLOT_TYPES[cst.OPLOT_TYPES_SHORT.index(v)]
+            elif k in ('cratercount'):
+                pass
+            elif k in ('offset_age', 'range'):
+                pld[k] = ', '.join(v) if v not in (['0', '0'], ['0', 'inf']) else ''
+            else:
+                pld[k] = v
+        return pld
+
     def set_GUI_values(self):
         """
         read from cps_dict and cp_dicts into current GUI state
@@ -172,20 +189,21 @@ class App(ctk.CTk):
 
         # plot items:
         for d in self.cp_dicts:
-            pld = {}
-            for k, v in d.items():
-                if k == 'psym':
-                    pld[k]=self.psyms[v]
-                elif k == 'colour':
-                    pld[k]=self.colours[v] if isinstance(v,int) else v
-                elif k == 'type':
-                     pld[k] = cst.OPLOT_TYPES[cst.OPLOT_TYPES_SHORT.index(v)]
-                elif k in ('cratercount'):
-                    pass
-                elif k in ('offset_age','range'):
-                    pld[k] = ', '.join(v) if v not in (['0', '0'],['0','inf']) else ''
-                else:
-                    pld[k] = v
+            pld = self.convert_default_plt_values(d)
+            # pld = {}
+            # for k, v in d.items():
+            #     if k == 'psym':
+            #         pld[k]=self.psyms[v]
+            #     elif k == 'colour':
+            #         pld[k]=self.colours[v] if isinstance(v,int) else v
+            #     elif k == 'type':
+            #          pld[k] = cst.OPLOT_TYPES[cst.OPLOT_TYPES_SHORT.index(v)]
+            #     elif k in ('cratercount'):
+            #         pass
+            #     elif k in ('offset_age','range'):
+            #         pld[k] = ', '.join(v) if v not in (['0', '0'],['0','inf']) else ''
+            #     else:
+            #         pld[k] = v
             pld['default_name'] = f"plot {len(self.plotlist) + 1}"
             self.plotlist.append(pld)
 
@@ -501,7 +519,15 @@ class App(ctk.CTk):
 
     def plotlist_new(self,update=True):
         i=0 if self.listbox.curselection() is None else self.listbox.curselection()+1
-        #print(f"curr:{i} {self.listbox.curselection()}")
+        pld = self.convert_default_plt_values(cst.DEFAULTS['plot'])
+        self.plotlist.insert(i, pld)
+        self.plotlist[i]['default_name'] = f"plot {i+1}"
+        self.plotlist[i]['name'] = self.plotlist[i]['default_name']
+        if update: self.plotlist_update(i)
+        self.plotlist_previous_selection = i
+
+    def plotlist_duplicate(self,update=True):
+        i=0 if self.listbox.curselection() is None else self.listbox.curselection()+1
         self.plotlist.insert(i, {})
         self.plotlist_gui2cp(i)
         self.plotlist[i]['default_name'] = f"plot {i+1}"
@@ -784,8 +810,6 @@ class App(ctk.CTk):
         plot_type = self.GUIval['plot']['type'].get()
         for t in ('resurf', 'resurf_showall'):
             self.plot_toggles_checkboxes[self.plot_toggles.index(t)].configure(state=ctk.NORMAL if plot_type=='cumulative-fit' else ctk.DISABLED) # resurf, resurf-showall
-
-
 
 
     def do_randomness_analysis(self):
