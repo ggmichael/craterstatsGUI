@@ -522,7 +522,7 @@ class App(ctk.CTk):
         pld = self.convert_default_plt_values(cst.DEFAULTS['plot'])
         self.plotlist.insert(i, pld)
         self.plotlist[i]['default_name'] = f"plot {i+1}"
-        self.plotlist[i]['name'] = self.plotlist[i]['default_name']
+        #self.plotlist[i]['name'] = self.plotlist[i]['default_name']
         if update: self.plotlist_update(i)
         self.plotlist_previous_selection = i
 
@@ -531,7 +531,7 @@ class App(ctk.CTk):
         self.plotlist.insert(i, {})
         self.plotlist_gui2cp(i)
         self.plotlist[i]['default_name'] = f"plot {i+1}"
-        self.plotlist[i]['name'] = self.plotlist[i]['default_name']
+        #self.plotlist[i]['name'] = self.plotlist[i]['default_name']
         if update: self.plotlist_update(i)
         self.plotlist_previous_selection = i
 
@@ -559,10 +559,12 @@ class App(ctk.CTk):
             self.plotlist_previous_selection = i + 1
             self.plotlist_update(i+1)
 
-    def plotlist_update(self,n,update_event=True):
+    def plotlist_update(self,n=None,update_event=True):
+        if n is None:
+            n=self.listbox.curselection()
         self.listbox.delete('all')
         for i,cp in enumerate(self.plotlist):
-            self.listbox.insert(i, cp['default_name'])
+            self.listbox.insert(i, cp['default_name'] if cp['name']=='' else cp['name'])
         self.listbox.activate(n)
         self.listbox.see(n)
         self.plotlist_select(n)
@@ -780,6 +782,7 @@ class App(ctk.CTk):
 
     def do_update_event(self):
         self.show_commandline()
+        self.plotlist_update(update_event=False)
         h = self.hash_uncertainty_params()
         if self.cps_dict['presentation'] == 'uncertainty' and self.uncertainty_ui_hash != h:
             self.uncertainty_ui_hash = h
