@@ -15,15 +15,19 @@ to allow craterstatsGUI to run. MacOS users may also require the following step:
 
    This allows the system to run the code without giving warnings about an "unidentified developer"
 
-Double-click the executable to launch the GUI, or call with parameters from console for command-line mode.
+Double-click the executable to launch the GUI, or call with parameters from console for command-line mode. 
+Windows users can create a desktop command console shortcut with the provided .bat file.
 
-The plot files used to generate [Gallery](https://github.com/ggmichael/craterstats/blob/main/docs/gallery.md) images 
-can be found in the `demo/` folder of the installation.
+The plot files used to generate [Gallery](https://github.com/ggmichael/craterstats/blob/main/docs/gallery.md) images can be opened from the `demo/` folder 
+of the installation.
 
 ### GUI tips
 
 - Set the diameter range for the current overplot using a mouse click-drag in the plot window
 - Adjust the position offset of an age label using a mouse shift-click-drag in the plot window
+- Add user-defined chronology functions with one-time use of the command line:
+`craterstats --functions_user "<..path to...>\functions_user.txt"`
+The new functions will appear in the GUI from then on.
 
 ### Bug reports
 
