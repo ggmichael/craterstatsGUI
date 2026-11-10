@@ -26,10 +26,10 @@ of the installation.
 - Set the diameter range for the current overplot using a mouse click-drag in the plot window
 - Adjust the position offset of an age label using a mouse shift-click-drag in the plot window
 - Add user-defined chronology functions with one-time use of the command line:
-`craterstats --functions_user "<..path to...>\functions_user.txt"`
+```craterstats --functions_user "<..path to...>\functions_user.txt"```
 The new functions will appear in the GUI from then on.
 
 ### Bug reports
 
 Please open a GitHub [issue](https://github.com/ggmichael/craterstatsGUI/issues) if you have an account; alternatively, contact the author by email. 
-It may be helpful to provide craterstatsGUI.log from the program folder. 
+It may be helpful to provide craterstatsGUI.log from the program folder if the program stopped unexpectedly.
