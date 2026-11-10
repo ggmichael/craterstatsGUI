@@ -10,13 +10,13 @@ Executables can be downloaded [here](https://github.com/ggmichael/craterstatsGUI
 Your system will warn that executables from unknown sources can be a security risk and ask you to confirm that you want
 to allow craterstatsGUI to run. MacOS users may also require the following step: 
 
-1. From a Terminal, run the command: 
+1. From a terminal window, run the command: 
 `xattr -dr com.apple.quarantine <location of craterstatsGUI directory>`
 
    This allows the system to run the code without giving warnings about an "unidentified developer"
 
-Double-click the executable to launch the GUI, or call with parameters from console for command-line mode. 
-Windows users can create a desktop command console shortcut with the provided .bat file.
+Double-click the executable to launch the GUI, or call with parameters from terminal window for command-line mode. 
+Windows users can create a desktop terminal window shortcut with the provided .bat file.
 
 The plot files used to generate [Gallery](https://github.com/ggmichael/craterstats/blob/main/docs/gallery.md) images can be opened from the `demo/` folder 
 of the installation.
