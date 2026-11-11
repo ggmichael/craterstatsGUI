@@ -41,7 +41,7 @@ import craterstats as cst
 import craterstats.gm as gm
 import craterstats.cli as cli
 
-from .layout import layout_GUI
+from craterstatsGUI.layout import layout_GUI
 
 class App(ctk.CTk):
 

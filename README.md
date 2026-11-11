@@ -18,7 +18,7 @@ to allow craterstatsGUI to run. MacOS users may also require the following step:
 Double-click the executable to launch the GUI, or call with parameters from terminal window for command-line mode. 
 Windows users can create a desktop terminal window shortcut with the provided .bat file.
 
-The plot files used to generate [Gallery](https://github.com/ggmichael/craterstats/blob/main/docs/gallery.md) images can be opened from the `demo/` folder 
+The plot files used to generate [Gallery](https://ggmichael.github.io/craterstats/) images can be opened from the `demo/` folder 
 of the installation.
 
 ### GUI tips

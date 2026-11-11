@@ -4,3 +4,4 @@
 __version__ = "0.2.0"
 
 from .gui import main
+from .layout import *
