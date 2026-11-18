@@ -183,27 +183,14 @@ class App(ctk.CTk):
         self.listbox.delete(0, "end")
         self.plotlist = []
         self.plotlist_previous_selection = None
-        self.pr_range = dict() # to store x,y ranges for different presentations
+        self.pr_range = {} # to store x,y ranges for different presentations
         self.age_area_result = None
         self.uncertainty_ui_hash = None
+        self.cratercount_cache = {}
 
         # plot items:
         for d in self.cp_dicts:
             pld = self.convert_default_plt_values(d)
-            # pld = {}
-            # for k, v in d.items():
-            #     if k == 'psym':
-            #         pld[k]=self.psyms[v]
-            #     elif k == 'colour':
-            #         pld[k]=self.colours[v] if isinstance(v,int) else v
-            #     elif k == 'type':
-            #          pld[k] = cst.OPLOT_TYPES[cst.OPLOT_TYPES_SHORT.index(v)]
-            #     elif k in ('cratercount'):
-            #         pass
-            #     elif k in ('offset_age','range'):
-            #         pld[k] = ', '.join(v) if v not in (['0', '0'],['0','inf']) else ''
-            #     else:
-            #         pld[k] = v
             pld['default_name'] = f"plot {len(self.plotlist) + 1}"
             self.plotlist.append(pld)
 
@@ -366,6 +353,8 @@ class App(ctk.CTk):
                     v = ' '.join(v)
                 elif k in ('measure'):
                     v = ','.join(v)
+                elif k == 'bins':
+                    k,v = ('-bins','')
                 elif isinstance(v, bool):
                     v = 1 if v else 0
                 cs.append(f"-{k} {v}")
@@ -376,7 +365,7 @@ class App(ctk.CTk):
                 for k,v in cp.items():
                     if k=='default_name':
                         continue
-                    elif i>0 and (k in cst.CARRY_OVER_PROPERTIES or (k == 'type' and cp['source'] == self.cp_dicts[i-1]['source'])):
+                    elif i>0 and (k in cst.CARRY_OVER_PROPERTIES or (k in ('type','shp_area') and cp['source'] == self.cp_dicts[i-1]['source'])):
                         default = v == self.cp_dicts[i-1][k]
                     elif k in ('name'):
                         default = v in (cst.DEFAULTS['plot'][k],cp['default_name'])
@@ -431,7 +420,7 @@ class App(ctk.CTk):
             for d in self.cp_dicts:
                 if isinstance(d['colour'], int): d['colour'] = self.cps.palette[d['colour']]
             try:
-                cpl = [cst.Craterplot(d) for d in self.cp_dicts]
+                cpl = [cst.Craterplot(d,cc_cache=self.cratercount_cache) for d in self.cp_dicts]
             except Exception as e:
                 self.print_error(e)
                 return
