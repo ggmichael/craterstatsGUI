@@ -176,7 +176,7 @@ class App(ctk.CTk):
                 pld[k] = v
         return pld
 
-    def set_GUI_values(self):
+    def set_GUI_values(self,cc_cache = None):
         """
         read from cps_dict and cp_dicts into current GUI state
         """
@@ -186,7 +186,8 @@ class App(ctk.CTk):
         self.pr_range = {} # to store x,y ranges for different presentations
         self.age_area_result = None
         self.uncertainty_ui_hash = None
-        self.cratercount_cache = {}
+        if cc_cache is None: # otherwise carry over
+            self.cratercount_cache = {} # not a gui value, but cleared at gui reset
 
         # plot items:
         for d in self.cp_dicts:
@@ -613,11 +614,12 @@ class App(ctk.CTk):
             dflt = copy.deepcopy(cst.DEFAULTS)
             self.cps_dict = cli.construct_cps_dict(args, dflt['set'], self.functions)
             try:
-                self.cp_dicts = cli.construct_plot_dicts(args, dflt['plot'], self.cps_dict)
+                self.cratercount_cache = {}
+                self.cp_dicts = cli.construct_plot_dicts(args, dflt['plot'], self.cps_dict,cc_cache=self.cratercount_cache)
             except:
                 self.print_error(f"{gm.filename(file_path, 'ne')} references invalid file path.\nPlease fix with text editor and retry.")
                 return
-            self.set_GUI_values()
+            self.set_GUI_values(cc_cache=self.cratercount_cache)
             self.request_update_event()
 
     def menu_close(self):

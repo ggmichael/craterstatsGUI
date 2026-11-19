@@ -1,5 +1,8 @@
 # History
 
+
+- Cache read data files - faster refreshes 
+
 ## 0.2
 
 - Add box to specify separate _AREA.shp file if needed
