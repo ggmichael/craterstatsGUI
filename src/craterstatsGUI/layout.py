@@ -288,6 +288,7 @@ def layout_GUI(app):
     app.command_frame.grid_columnconfigure(1, weight=0)
     app.textbox_command = ctk.CTkTextbox(master=app.command_frame, height=60)
     app.textbox_command.grid(row=0, column=0, columnspan=1, padx=(10, 10), pady=5, sticky="nsew")
+    app.textbox_command.bind("<Key>", prevent_edit)
 
     app.button_update = ctk.CTkButton(master=app.command_frame, command=app.do_update_event, text="Update", width=100, state=ctk.DISABLED)
     app.button_update.grid(row=0, column=1, padx=10, pady=10, sticky="e")
@@ -298,3 +299,9 @@ def layout_GUI(app):
     app.progressbar.set(1.0)
 
     app.bind("<Button-1>", app.remove_entry_focus)
+
+def prevent_edit(event):
+    if event.state & 0x4 and event.keysym.lower() in ("c", "a", "insert"): # allow Ctrl+C, Ctrl+A and Ctrl+Insert
+        return
+    return "break"
+
