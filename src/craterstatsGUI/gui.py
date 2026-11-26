@@ -150,7 +150,6 @@ class App(ctk.CTk):
             GUIval['set'][k] = ctk.StringVar(value='')
             self.pr_xyranges[k] = {}
 
-        #GUIval['plot']['default_name'] = ctk.StringVar(value='') # stores shortened src name to test if name needed in cs output
         GUIval['set']['legend_elements'] = [ctk.BooleanVar(value=False) for e in self.legend_codes]
         GUIval['set']['format_elements'] = [ctk.BooleanVar(value=False) for e in self.formats]
 
@@ -192,7 +191,6 @@ class App(ctk.CTk):
         # plot items:
         for d in self.cp_dicts:
             pld = self.convert_default_plt_values(d)
-            #pld['default_name'] = f"plot {len(self.plotlist) + 1}"
             pld['creation_time'] = datetime.now() + timedelta(milliseconds=len(self.plotlist)) # ensure in sequence
             self.plotlist.append(pld)
 
@@ -365,12 +363,10 @@ class App(ctk.CTk):
             for i,cp in enumerate(self.cp_dicts):
                 s=[]
                 for k,v in cp.items():
-                    if k=='default_name':
+                    if k=='creation_time':
                         continue
                     elif i>0 and (k in cst.CARRY_OVER_PROPERTIES or (k in ('type','shp_area') and cp['source'] == self.cp_dicts[i-1]['source'])):
                         default = v == self.cp_dicts[i-1][k]
-                    elif k in ('creation_time'):
-                        pass
                     else:
                         default = v == cst.DEFAULTS['plot'][k]
                     if not default:
@@ -512,8 +508,6 @@ class App(ctk.CTk):
         i=0 if self.listbox.curselection() is None else self.listbox.curselection()+1
         pld = self.convert_default_plt_values(cst.DEFAULTS['plot'])
         self.plotlist.insert(i, pld)
-        #self.plotlist[i]['default_name'] = f"plot {i+1}"
-        #self.plotlist[i]['name'] = self.plotlist[i]['default_name']
         self.plotlist[i]['creation_time'] = datetime.now()
         if update: self.plotlist_update(i)
         self.plotlist_previous_selection = i
@@ -522,8 +516,6 @@ class App(ctk.CTk):
         i=0 if self.listbox.curselection() is None else self.listbox.curselection()+1
         self.plotlist.insert(i, {})
         self.plotlist_gui2cp(i)
-        #self.plotlist[i]['default_name'] = f"plot {i+1}"
-        #self.plotlist[i]['name'] = self.plotlist[i]['default_name']
         self.plotlist[i]['creation_time'] = datetime.now()
         if update: self.plotlist_update(i)
         self.plotlist_previous_selection = i
@@ -565,8 +557,8 @@ class App(ctk.CTk):
             name = cp['name'] or ( self.cratercount_cache[key].name if key in self.cratercount_cache else 'plot' )
             counts[name] = counts.get(name, 0) + 1
             names[i] = f'{name} ({counts[name]})' if counts[name] > 1 else name
-            print(f"{ self.plotlist[i]['creation_time']}:{name}")
-        print()
+        #     print(f"{ self.plotlist[i]['creation_time']}:{name}")
+        # print()
 
         for i, cp in enumerate(self.plotlist):
             self.listbox.insert(i, names[i])
@@ -707,9 +699,6 @@ class App(ctk.CTk):
             self.entry_source.icursor(len(file_path))
             self.entry_source.xview(len(file_path))
             self.entry_source.configure(state="readonly")
-            default_name = gm.filename(file_path,'n')
-            self.GUIval['plot']['default_name'].set(default_name)
-            #self.GUIval['plot']['name'].set(default_name)
             self.request_update_event()
 
     def browse_area(self):
@@ -728,9 +717,6 @@ class App(ctk.CTk):
             self.entry_area.icursor(len(file_path))
             self.entry_area.xview(len(file_path))
             self.entry_area.configure(state="readonly")
-            default_name = gm.filename(file_path, 'n')
-            self.GUIval['plot']['default_name'].set(default_name)
-            #self.GUIval['plot']['name'].set(default_name)
             self.request_update_event()
 
     def body_event(self,v,update_event=True):
@@ -822,12 +808,6 @@ class App(ctk.CTk):
         for t in ('resurf', 'resurf_showall'):
             self.plot_toggles_checkboxes[self.plot_toggles.index(t)].configure(state=ctk.NORMAL if plot_type=='cumulative-fit' else ctk.DISABLED) # resurf, resurf-showall
 
-        # #
-        # key = (src,None if shp_area=='' else shp_area)
-        # if key in self.cratercount_cache:
-
-
-        #self.GUIval['plot']['default_name'].set(default_name)
 
     def do_randomness_analysis(self):
         f = self.GUIval['plot']['source'].get()
