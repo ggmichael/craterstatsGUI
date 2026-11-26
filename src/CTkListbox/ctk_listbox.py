@@ -31,6 +31,7 @@ class CTkListbox(customtkinter.CTkScrollableFrame):
 
         self.buttons = {}
         self.bindings = {}
+        self._hover_callbacks = []
 
         super().__init__(
             master,
@@ -131,16 +132,16 @@ class CTkListbox(customtkinter.CTkScrollableFrame):
             if selected_button in self.selections:
                 self.selections.remove(selected_button)
                 selected_button.configure(fg_color=self.button_fg_color, hover=False)
-                self.after(100, lambda: selected_button.configure(hover=self.hover))
+                self._schedule_hover(selected_button)
             else:
                 self.selections.append(selected_button)
             for i in self.selections:
                 i.configure(fg_color=self.select_color, hover=False)
-                self.after(100, lambda button=i: button.configure(hover=self.hover))
+                self._schedule_hover(i)
         else:
             self.selected = selected_button
             selected_button.configure(fg_color=self.select_color, hover=False)
-            self.after(100, lambda: selected_button.configure(hover=self.hover))
+            self._schedule_hover(selected_button)
 
         if self.command:
             self.command(self.get())
@@ -494,7 +495,19 @@ class CTkListbox(customtkinter.CTkScrollableFrame):
             if self._parent_canvas.yview() != (0.0, 1.0):
                 self._parent_canvas.yview("scroll", int(100 / 6), "units")
 
-    def clear(self): # added because delete('all') leaves pending callbacks - 2026-11-26 - gm
-        for after_id in self.tk.call('after', 'info'):
-            self.after_cancel(after_id)
+
+# following added to fix callback errors after updating listbox
+
+    def _schedule_hover(self, button):
+        after_id = self.after(100, lambda: button.configure(hover=self.hover))
+        self._hover_callbacks.append(after_id)
+
+    def clear(self):
+        for after_id in self._hover_callbacks:
+            try:
+                self.after_cancel(after_id)
+            except customtkinter.tkinter.TclError:
+                pass
+
+        self._hover_callbacks.clear()
         self.delete('all')
