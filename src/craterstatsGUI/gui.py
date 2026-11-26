@@ -182,6 +182,7 @@ class App(ctk.CTk):
         self.listbox.delete(0, "end")
         self.plotlist = []
         self.plotlist_previous_selection = None
+        self.current_namelist = None
         self.pr_range = {} # to store x,y ranges for different presentations
         self.age_area_result = None
         self.uncertainty_ui_hash = None
@@ -547,7 +548,6 @@ class App(ctk.CTk):
     def plotlist_update(self,n=None,update_event=True):
         if n is None:
             n=self.listbox.curselection()
-        self.listbox.clear()
 
         counts = {}
         names = {}
@@ -560,8 +560,15 @@ class App(ctk.CTk):
         #     print(f"{ self.plotlist[i]['creation_time']}:{name}")
         # print()
 
-        for i, cp in enumerate(self.plotlist):
-            self.listbox.insert(i, names[i])
+        namelist = [names[i] for i in range(len(self.plotlist))]
+        if namelist != self.current_namelist:
+            self.listbox.clear()
+            for name in namelist:
+                self.listbox.insert('end', name)
+            self.current_namelist = namelist
+            #
+            # for i, cp in enumerate(self.plotlist):
+            #     self.listbox.insert(i, names[i])
 
         self.listbox.activate(n)
         self.listbox.see(n)
