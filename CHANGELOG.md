@@ -1,6 +1,6 @@
 # History
 
-
+- Improve overplot naming mechanism
 - Cache read data files - faster refreshes 
 
 ## 0.2

@@ -493,3 +493,8 @@ class CTkListbox(customtkinter.CTkScrollableFrame):
             # Update the scrollbar position
             if self._parent_canvas.yview() != (0.0, 1.0):
                 self._parent_canvas.yview("scroll", int(100 / 6), "units")
+
+    def clear(self): # added because delete('all') leaves pending callbacks - 2026-11-26 - gm
+        for after_id in self.tk.call('after', 'info'):
+            self.after_cancel(after_id)
+        self.delete('all')
