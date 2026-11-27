@@ -964,6 +964,7 @@ def hash_dict(d):
     dict_json = json.dumps(d, sort_keys=True)
     dict_hash = hashlib.sha256(dict_json.encode()).hexdigest()
     return dict_hash
+
 def relative_path_if_possible(path, workdir):
     p = Path(path).resolve()
     w = Path(workdir).resolve()
